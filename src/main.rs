@@ -1,14 +1,15 @@
 extern crate osmpbfreader;
 
+mod converter;
 mod osm_reader;
-
+mod poly_writer;
 
 fn main() {
 
-    //process
     let in_filename = "karlsruhe-regbez-latest.osm.pbf";
-    // let in_filename = "berlin-latest.osm.pbf";
-    // let (nodes, ways) = osm_reader::read_osm(&in_filename.to_owned(), &config);
-    // let graph = osm_convert::convert(nodes, ways, &config);
-    osm_reader::read_osm(in_filename);
+
+    let relations = osm_reader::read_osm(in_filename);
+    let polygons = converter::convert(relations);
+    poly_writer::write(&".".to_string(), &polygons);
+    println!("{:?}", polygons);
 }

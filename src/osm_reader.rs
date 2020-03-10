@@ -3,19 +3,31 @@ use osmpbfreader::{OsmObj, OsmPbfReader, Relation, RelationId, WayId, Node, Node
 use std::collections::{HashSet, HashMap};
 use std::time::Instant;
 
+pub struct RelationNodes {
+    pub relation: Relation,
+    pub nodes: Vec<Node>,
+}
 
-pub fn read_osm(filename: &str) -> (Vec<Relation>, HashMap<RelationId, Vec<Node>>) {
+use std::fmt;
+impl fmt::Debug for RelationNodes {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "RelationNodes {{ data: {:?}, points: {:?} }}", self.relation, 0)
+    }
+}
+
+
+
+pub fn read_osm(filename: &str) -> Vec<RelationNodes> {
     let file_reference = std::fs::File::open(&std::path::Path::new(filename)).unwrap();
     read_ways_and_relation(file_reference)
 }
 
 
-
-fn read_ways_and_relation(file_reference: std::fs::File) -> (Vec<Relation>, HashMap<RelationId, Vec<Node>>) {
+fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
     let mut pbf = OsmPbfReader::new(file_reference);
 
-    let mut relations = Vec::new(); //out
-    let mut relation_to_nodes: HashMap<RelationId, Vec<Node>> = HashMap::new(); //out
+    let mut relations: HashMap<RelationId, Relation> = HashMap::new();
+    let mut relation_to_nodes: HashMap<RelationId, Vec<Node>> = HashMap::new();
 
     let mut relation_to_way: HashMap<RelationId, WayId> = HashMap::new();
     let mut way_to_nodes: HashMap<WayId, Vec<NodeId>> = HashMap::new();
@@ -55,7 +67,7 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> (Vec<Relation>, Hash
                     let way_id = entry.member.way().unwrap();
 
                     relation_to_way.insert(relation.id, way_id);
-                    relations.push(relation);
+                    relations.insert(relation.id, relation);
                     break;
                 }
 
@@ -120,10 +132,17 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> (Vec<Relation>, Hash
         }
     }
 
-    let filtered_relations: Vec<Relation> = relations.iter()
-        .filter(|r| relation_to_nodes.contains_key(&r.id))
-        .map(|x| x.clone())
+    //prepare output
+    let output: Vec<RelationNodes> = relation_to_nodes
+        .iter()
+        .map(|(r_id, nodes)| RelationNodes{ relation: relations.get(&r_id).unwrap().clone(), nodes: nodes.to_vec()})
         .collect();
+
+
+    // let filtered_relations: Vec<Relation> = relations.iter()
+    //     .filter(|r| relation_to_nodes.contains_key(&r.id))
+    //     .map(|x| x.clone())
+    //     .collect();
 
 
 
@@ -138,5 +157,7 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> (Vec<Relation>, Hash
     );
 
     // (nodes, ways)
-    (filtered_relations, relation_to_nodes)
+    // (filtered_relations, relation_to_nodes)
+    // println!("{:?}", output);
+    output
 }
