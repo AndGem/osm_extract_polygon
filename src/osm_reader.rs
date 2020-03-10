@@ -56,6 +56,26 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
                     continue;
                 }
 
+                if !relation.tags.contains_key("admin_level") {
+                    continue;
+                }
+
+                let admin_level_parse = relation.tags
+                    .get("admin_level")
+                    .unwrap()
+                    .parse::<i8>();
+
+                match admin_level_parse {
+                    Ok(value) => {
+                        if value > 8 {
+                            continue;
+                        }
+                    }
+                    Err(_) => {
+                        continue;
+                    }
+                }
+
                 //TODO: this can be made nicer!
                 for entry in &relation.refs {
                     if !(entry.member.is_way()) {
