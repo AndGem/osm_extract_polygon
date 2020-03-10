@@ -11,5 +11,5 @@ fn main() {
     let relations = osm_reader::read_osm(in_filename);
     let polygons = converter::convert(relations);
     poly_writer::write(&".".to_string(), &polygons);
-    println!("{:?}", polygons);
+    // println!("{:?}", polygons);
 }

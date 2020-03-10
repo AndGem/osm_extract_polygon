@@ -33,7 +33,7 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
     let mut way_to_nodes: HashMap<WayId, Vec<NodeId>> = HashMap::new();
     let mut nodeid_to_node: HashMap<NodeId, Node> = HashMap::new();
 
-    let now = Instant::now();
+    let mut now = Instant::now();
     // let x: Vec<Relation> = pbf.par_iter()
     //     .map(Result::unwrap)
     //     .filter(|obj| obj.is_relation())
@@ -48,6 +48,7 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
 
     // }
 
+    println!("parsing relations...");
     for obj in pbf.par_iter().map(Result::unwrap) {
         match obj {
             OsmObj::Relation(relation) => {
@@ -75,11 +76,14 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
             _ => {}
         }
     }
-
+    println!("parsing relations finished! {}s", now.elapsed().as_secs());
+    now = Instant::now();
+    
     // println!("{:?}", relation_to_way);
     let way_ids: HashSet<WayId> = relation_to_way.iter().map( |(k, v) | v.clone()).collect();
     // println!("{:?}", way_ids);
 
+    println!("parsing ways...");
     pbf.rewind();
     for obj in pbf.par_iter().map(Result::unwrap) {
         match obj {
@@ -91,13 +95,14 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
             _ => {}
         }
     }
-
-    // println!("{:?}", way_to_nodes);
+    println!("parsing ways finished! {}s", now.elapsed().as_secs());
+    now = Instant::now();
 
     let node_ids: HashSet<NodeId> = way_to_nodes.iter().flat_map(|(k, v)| v.clone()).collect();
     // println!("{:?}", node_ids);
 
     // 
+    println!("parsing nodes...");
     pbf.rewind();
     for obj in pbf.par_iter().map(Result::unwrap) {
         match obj {
@@ -131,6 +136,7 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
             relation_to_nodes.insert(relation_id, node_data);
         }
     }
+    println!("parsing nodes finished! {}s", now.elapsed().as_secs());
 
     //prepare output
     let output: Vec<RelationNodes> = relation_to_nodes
@@ -147,7 +153,7 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
 
 
 
-    println!("finished reading of osm data: {}s", now.elapsed().as_secs());
+    // println!("finished reading of osm data: {}s", now.elapsed().as_secs());
     println!(
         "data contains: {} ways, and {} nodes",
         // ways.len(),
