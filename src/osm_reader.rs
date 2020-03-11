@@ -17,12 +17,10 @@ impl fmt::Debug for RelationNodes {
     }
 }
 
-
 pub fn read_osm(filename: &str) -> Vec<RelationNodes> {
     let file_reference = std::fs::File::open(&std::path::Path::new(filename)).unwrap();
     read_ways_and_relation(file_reference)
 }
-
 
 fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
     let mut pbf = OsmPbfReader::new(file_reference);
@@ -38,53 +36,52 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
 
     println!("parsing relations...");
     for obj in pbf.par_iter().map(Result::unwrap) {
-        match obj {
-            OsmObj::Relation(relation) => {
-                if !relation.tags.contains("boundary", "administrative") {
-                    continue;
-                }
+        if let OsmObj::Relation(relation) = obj {
 
-                if !relation.tags.contains_key("admin_level") {
-                    continue;
-                }
-
-                let admin_level_parse = relation.tags
-                    .get("admin_level")
-                    .unwrap()
-                    .parse::<i8>();
-
-                match admin_level_parse {
-                    Ok(value) => {
-                        if value > 8 {
-                            continue;
-                        }
-                    }
-                    Err(_) => {
-                        continue;
-                    }
-                }
-
-                //TODO: this can be made nicer!
-                for entry in &relation.refs {
-                    if !(entry.member.is_way()) {
-                        continue;
-                    }
-                    
-                    //TODO: rethink this criteria
-                    // if !(entry.role == "outer") {
-                    //     continue;
-                    // }
-
-                    let way_id = entry.member.way().unwrap();
-                    if !relation_to_ways.contains_key(&relation.id) {
-                        relation_to_ways.insert(relation.id, Vec::new());
-                    }
-                    relation_to_ways.get_mut(&relation.id).unwrap().push(way_id);
-                }
-
-                relations.insert(relation.id, relation);
+            if !relation.tags.contains("boundary", "administrative") {
+                continue;
             }
-            _ => {}
+
+            if !relation.tags.contains_key("admin_level") {
+                continue;
+            }
+
+            let admin_level_parse = relation.tags
+                .get("admin_level")
+                .unwrap()
+                .parse::<i8>();
+
+            match admin_level_parse {
+                Ok(value) => {
+                    if value > 8 {
+                        continue;
+                    }
+                }
+                Err(_) => {
+                    continue;
+                }
+            }
+
+            //TODO: this can be made nicer!
+            for entry in &relation.refs {
+                if !(entry.member.is_way()) {
+                    continue;
+                }
+                
+                //TODO: rethink this criteria
+                // if !(entry.role == "outer") {
+                //     continue;
+                // }
+
+                let way_id = entry.member.way().unwrap();
+
+                relation_to_ways
+                    .entry(relation.id)
+                    .or_insert_with(Vec::new)
+                    .push(way_id);
+            }
+
+            relations.insert(relation.id, relation);
         }
     }
     println!("parsing relations finished! {}s", now.elapsed().as_secs());
@@ -98,33 +95,25 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
     let _rresult = pbf.rewind();
 
     for obj in pbf.par_iter().map(Result::unwrap) {
-        match obj {
-            OsmObj::Way(way) => {
-                if way_ids.contains(&way.id) {
-                    way_to_nodes.insert(way.id, way.nodes);
-                }
-            }   
-            _ => {}
+        if let OsmObj::Way(way) = obj {
+            if way_ids.contains(&way.id) {
+                way_to_nodes.insert(way.id, way.nodes);
+            }
         }
     }
     println!("parsing ways finished! {}s", now.elapsed().as_secs());
     now = Instant::now();
 
     let node_ids: HashSet<NodeId> = way_to_nodes.iter().flat_map(|(_, v)| v.clone()).collect();
-    // println!("{:?}", node_ids);
 
-    // 
     println!("parsing nodes...");
     let _rresult2 = pbf.rewind();
 
     for obj in pbf.par_iter().map(Result::unwrap) {
-        match obj {
-            OsmObj::Node(node) => {
-                if node_ids.contains(&node.id) {
-                    nodeid_to_node.insert(node.id, node);
-                }
+        if let OsmObj::Node(node) = obj {
+            if node_ids.contains(&node.id) {
+                nodeid_to_node.insert(node.id, node);
             }
-            _ => {}
         }
     }
 
@@ -141,16 +130,16 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
                 .clone();
 
             let nodes : Vec<Node> = node_ids.iter()
-                .map(|x| nodeid_to_node.get(&x).clone())
+                .map(|x| nodeid_to_node.get(&x))
                 .filter(|x| x.is_some())
                 .map(|x| x.unwrap())
-                .map(|x| x.clone())
+                .cloned()
                 .collect();
 
-            if !relation_to_nodes.contains_key(&relation_id) {
-                relation_to_nodes.insert(relation_id, Vec::new());
-            }
-            relation_to_nodes.get_mut(&relation_id).unwrap().push(nodes);
+            relation_to_nodes
+                .entry(relation_id)
+                .or_insert_with(Vec::new)
+                .push(nodes);
         }
 
     }
