@@ -10,6 +10,11 @@ fn main() {
 
     let relations = osm_reader::read_osm(in_filename);
     let polygons = converter::convert(relations);
-    poly_writer::write(&".".to_string(), &polygons);
-    // println!("{:?}", polygons);
+    
+    let result = poly_writer::write(&"./output".to_string(), &polygons);
+
+    match result {
+        Ok(_) => println!("success!"),
+        Err(_) => println!("error!"),
+    }
 }

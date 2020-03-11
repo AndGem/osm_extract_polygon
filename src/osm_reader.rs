@@ -91,11 +91,12 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
     now = Instant::now();
     
     // println!("{:?}", relation_to_way);
-    let way_ids: HashSet<WayId> = relation_to_ways.iter().flat_map( |(k, v) | v.clone()).collect();
+    let way_ids: HashSet<WayId> = relation_to_ways.iter().flat_map( |(_, v) | v.clone()).collect();
     // println!("{:?}", way_ids);
 
     println!("parsing ways...");
-    pbf.rewind();
+    let _rresult = pbf.rewind();
+
     for obj in pbf.par_iter().map(Result::unwrap) {
         match obj {
             OsmObj::Way(way) => {
@@ -109,12 +110,13 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
     println!("parsing ways finished! {}s", now.elapsed().as_secs());
     now = Instant::now();
 
-    let node_ids: HashSet<NodeId> = way_to_nodes.iter().flat_map(|(k, v)| v.clone()).collect();
+    let node_ids: HashSet<NodeId> = way_to_nodes.iter().flat_map(|(_, v)| v.clone()).collect();
     // println!("{:?}", node_ids);
 
     // 
     println!("parsing nodes...");
-    pbf.rewind();
+    let _rresult2 = pbf.rewind();
+
     for obj in pbf.par_iter().map(Result::unwrap) {
         match obj {
             OsmObj::Node(node) => {
@@ -160,26 +162,5 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
         .map(|(r_id, nodes)| RelationNodes{ relation: relations.get(&r_id).unwrap().clone(), nodes: nodes.to_vec()})
         .collect();
 
-
-    // let filtered_relations: Vec<Relation> = relations.iter()
-    //     .filter(|r| relation_to_nodes.contains_key(&r.id))
-    //     .map(|x| x.clone())
-    //     .collect();
-
-
-
-
-    // println!("finished reading of osm data: {}s", now.elapsed().as_secs());
-    println!(
-        "data contains: {} ways, and {} nodes",
-        // ways.len(),
-        // nodes.len()
-        1,
-        1
-    );
-
-    // (nodes, ways)
-    // (filtered_relations, relation_to_nodes)
-    // println!("{:?}", output);
     output
 }
