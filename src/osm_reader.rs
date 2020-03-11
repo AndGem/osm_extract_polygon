@@ -3,10 +3,12 @@ use osmpbfreader::{OsmObj, OsmPbfReader, Relation, RelationId, WayId, Node, Node
 use std::collections::{HashSet, HashMap};
 use std::time::Instant;
 
+#[derive(Clone)]
 pub struct RelationNodes {
     pub relation: Relation,
-    pub nodes: Vec<Node>,
+    pub nodes: Vec<Vec<Node>>,
 }
+
 
 use std::fmt;
 impl fmt::Debug for RelationNodes {
@@ -14,7 +16,6 @@ impl fmt::Debug for RelationNodes {
         write!(f, "RelationNodes {{ data: {:?}, points: {:?} }}", self.relation, 0)
     }
 }
-
 
 
 pub fn read_osm(filename: &str) -> Vec<RelationNodes> {
@@ -27,26 +28,13 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
     let mut pbf = OsmPbfReader::new(file_reference);
 
     let mut relations: HashMap<RelationId, Relation> = HashMap::new();
-    let mut relation_to_nodes: HashMap<RelationId, Vec<Node>> = HashMap::new();
+    let mut relation_to_nodes: HashMap<RelationId, Vec<Vec<Node>>> = HashMap::new();
 
-    let mut relation_to_way: HashMap<RelationId, WayId> = HashMap::new();
+    let mut relation_to_ways: HashMap<RelationId, Vec<WayId>> = HashMap::new();
     let mut way_to_nodes: HashMap<WayId, Vec<NodeId>> = HashMap::new();
     let mut nodeid_to_node: HashMap<NodeId, Node> = HashMap::new();
 
     let mut now = Instant::now();
-    // let x: Vec<Relation> = pbf.par_iter()
-    //     .map(Result::unwrap)
-    //     .filter(|obj| obj.is_relation())
-    //     .map(|obj| obj.relation().unwrap())
-    //     // .filter(|obj| )
-    //     .collect();
-
-    // let osm_objects = pbf.par_iter().map(Result::unwrap);
-    // println!("{:?}", type_of(osm_objects));
-
-    // for obj in osm_objects {
-
-    // }
 
     println!("parsing relations...");
     for obj in pbf.par_iter().map(Result::unwrap) {
@@ -81,17 +69,20 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
                     if !(entry.member.is_way()) {
                         continue;
                     }
-                    if !(entry.role == "outer") {
-                        continue;
-                    }
+                    
+                    //TODO: rethink this criteria
+                    // if !(entry.role == "outer") {
+                    //     continue;
+                    // }
 
                     let way_id = entry.member.way().unwrap();
-
-                    relation_to_way.insert(relation.id, way_id);
-                    relations.insert(relation.id, relation);
-                    break;
+                    if !relation_to_ways.contains_key(&relation.id) {
+                        relation_to_ways.insert(relation.id, Vec::new());
+                    }
+                    relation_to_ways.get_mut(&relation.id).unwrap().push(way_id);
                 }
 
+                relations.insert(relation.id, relation);
             }
             _ => {}
         }
@@ -100,7 +91,7 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
     now = Instant::now();
     
     // println!("{:?}", relation_to_way);
-    let way_ids: HashSet<WayId> = relation_to_way.iter().map( |(k, v) | v.clone()).collect();
+    let way_ids: HashSet<WayId> = relation_to_ways.iter().flat_map( |(k, v) | v.clone()).collect();
     // println!("{:?}", way_ids);
 
     println!("parsing ways...");
@@ -137,24 +128,29 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
 
 
     //TODO: make this nicer as well!
-    for (relation_id, way_id) in relation_to_way {
-        let opt_node_ids = way_to_nodes.get(&way_id);
-        if opt_node_ids.is_none() {
-            continue;
+    for (relation_id, way_ids) in relation_to_ways {
+        for way_id in way_ids {
+            let opt_node_ids = way_to_nodes.get(&way_id);
+            if opt_node_ids.is_none() {
+                continue;
+            }
+            let node_ids: Vec<NodeId> = opt_node_ids
+                .unwrap()
+                .clone();
+
+            let nodes : Vec<Node> = node_ids.iter()
+                .map(|x| nodeid_to_node.get(&x).clone())
+                .filter(|x| x.is_some())
+                .map(|x| x.unwrap())
+                .map(|x| x.clone())
+                .collect();
+
+            if !relation_to_nodes.contains_key(&relation_id) {
+                relation_to_nodes.insert(relation_id, Vec::new());
+            }
+            relation_to_nodes.get_mut(&relation_id).unwrap().push(nodes);
         }
-        let node_ids: Vec<NodeId> = opt_node_ids
-            .unwrap()
-            .clone();
 
-
-        let nodes : Option<Vec<&Node>> = node_ids.iter()
-            .map(|x| nodeid_to_node.get(&x).clone())
-            .collect();
-
-        if nodes.is_some() {
-            let node_data: Vec<Node> = nodes.unwrap().iter().map(|x| (*x).clone()).collect();
-            relation_to_nodes.insert(relation_id, node_data);
-        }
     }
     println!("parsing nodes finished! {}s", now.elapsed().as_secs());
 
