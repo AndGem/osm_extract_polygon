@@ -22,6 +22,7 @@ impl fmt::Debug for Polygon {
         )
     }
 }
+
 impl fmt::Debug for Point {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Point {{ lat: {}, lon: {} }}", self.lat, self.lon)
@@ -50,8 +51,6 @@ fn merge_nodes(rn: RelationNodes) -> RelationNodes {
          2. repeat process until
     */
 
-    // take first element
-    // use swap_remove to take elements out
     let mut nodes = rn.nodes;
     let mut result_nodes: Vec<Vec<Node>> = Vec::new();
 
