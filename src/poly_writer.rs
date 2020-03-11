@@ -18,12 +18,13 @@ pub fn write(folder: &str, polygons: &[Polygon]) -> std::io::Result<usize> {
         for points in &polygon.points {
             file.write_fmt(format_args!("area_{}\n", index))?;
             for point in points {
-                file.write_fmt(format_args!("\t{},\t{}\n", point.lon, point.lat))?;
+                file.write_fmt(format_args!("\t{} \t{}\n", point.lon, point.lat))?;
             }
 
             file.write_all(b"END\n")?;
             index += 1;
         }
+        file.write_all(b"END\n")?;
     }
 
     Ok(polygons.len())

@@ -9,9 +9,9 @@ fn main() {
     //TODO: write proper README
     //TODO:
 
-    // let in_filename = "karlsruhe-regbez-latest.osm.pbf";
+    let in_filename = "karlsruhe-regbez-latest.osm.pbf";
     // let in_filename = "spain-latest.osm.pbf";
-    let in_filename = "iceland-latest.osm.pbf";
+    // let in_filename = "iceland-latest.osm.pbf";
 
     let relations = osm_reader::read_osm(in_filename);
     let polygons = converter::convert(relations);

@@ -3,6 +3,8 @@ use osmpbfreader::{Node, NodeId, OsmObj, OsmPbfReader, Relation, RelationId, Way
 use std::collections::{HashMap, HashSet};
 use std::time::Instant;
 
+use std::i8::MAX;
+
 #[derive(Clone)]
 pub struct RelationNodes {
     pub relation: Relation,
@@ -28,37 +30,29 @@ pub fn read_osm(filename: &str) -> Vec<RelationNodes> {
 fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
     let mut pbf = OsmPbfReader::new(file_reference);
 
-    let mut relations: HashMap<RelationId, Relation> = HashMap::new();
+    let mut relation_id_to_relation: HashMap<RelationId, Relation> = HashMap::new();
     let mut relation_to_nodes: HashMap<RelationId, Vec<Vec<Node>>> = HashMap::new();
 
     let mut relation_to_ways: HashMap<RelationId, Vec<WayId>> = HashMap::new();
     let mut way_to_nodes: HashMap<WayId, Vec<NodeId>> = HashMap::new();
-    let mut nodeid_to_node: HashMap<NodeId, Node> = HashMap::new();
+    let mut node_id_to_node: HashMap<NodeId, Node> = HashMap::new();
 
     let mut now = Instant::now();
 
     println!("parsing relations...");
     for obj in pbf.par_iter().map(Result::unwrap) {
         if let OsmObj::Relation(relation) = obj {
-            if !relation.tags.contains("boundary", "administrative") {
+            if !relation.tags.contains("boundary", "administrative")
+                || !relation.tags.contains_key("admin_level") {
                 continue;
             }
 
-            if !relation.tags.contains_key("admin_level") {
+            let admin_level_parse = relation.tags
+                .get("admin_level").unwrap()
+                .parse::<i8>().unwrap_or(MAX);
+
+            if admin_level_parse > 8 {
                 continue;
-            }
-
-            let admin_level_parse = relation.tags.get("admin_level").unwrap().parse::<i8>();
-
-            match admin_level_parse {
-                Ok(value) => {
-                    if value > 8 {
-                        continue;
-                    }
-                }
-                Err(_) => {
-                    continue;
-                }
             }
 
             //TODO: this can be made nicer!
@@ -66,10 +60,6 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
                 if !(entry.member.is_way()) {
                     continue;
                 }
-                //TODO: rethink this criteria
-                // if !(entry.role == "outer") {
-                //     continue;
-                // }
 
                 let way_id = entry.member.way().unwrap();
 
@@ -79,17 +69,17 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
                     .push(way_id);
             }
 
-            relations.insert(relation.id, relation);
+            relation_id_to_relation.insert(relation.id, relation);
         }
     }
+
     println!("parsing relations finished! {}s", now.elapsed().as_secs());
     now = Instant::now();
-    // println!("{:?}", relation_to_way);
+
     let way_ids: HashSet<WayId> = relation_to_ways
         .iter()
         .flat_map(|(_, v)| v.clone())
         .collect();
-    // println!("{:?}", way_ids);
 
     println!("parsing ways...");
     let _rresult = pbf.rewind();
@@ -112,7 +102,7 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
     for obj in pbf.par_iter().map(Result::unwrap) {
         if let OsmObj::Node(node) = obj {
             if node_ids.contains(&node.id) {
-                nodeid_to_node.insert(node.id, node);
+                node_id_to_node.insert(node.id, node);
             }
         }
     }
@@ -128,7 +118,7 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
 
             let nodes: Vec<Node> = node_ids
                 .iter()
-                .map(|x| nodeid_to_node.get(&x))
+                .map(|x| node_id_to_node.get(&x))
                 .filter(|x| x.is_some())
                 .map(|x| x.unwrap())
                 .cloned()
@@ -146,7 +136,7 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
     let output: Vec<RelationNodes> = relation_to_nodes
         .iter()
         .map(|(r_id, nodes)| RelationNodes {
-            relation: relations.get(&r_id).unwrap().clone(),
+            relation: relation_id_to_relation.get(&r_id).unwrap().clone(),
             nodes: nodes.to_vec(),
         })
         .collect();
