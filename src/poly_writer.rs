@@ -1,7 +1,6 @@
-
 use crate::converter::Polygon;
 
-use std::fs::{File, create_dir_all};
+use std::fs::{create_dir_all, File};
 use std::io::prelude::*;
 
 pub fn write(folder: &str, polygons: &[Polygon]) -> std::io::Result<usize> {
@@ -18,7 +17,6 @@ pub fn write(folder: &str, polygons: &[Polygon]) -> std::io::Result<usize> {
         let mut index: i32 = 1;
         for points in &polygon.points {
             file.write_fmt(format_args!("area_{}\n", index))?;
-    
             for point in points {
                 file.write_fmt(format_args!("\t{},\t{}\n", point.lon, point.lat))?;
             }
@@ -31,14 +29,11 @@ pub fn write(folder: &str, polygons: &[Polygon]) -> std::io::Result<usize> {
     Ok(polygons.len())
 }
 
-
-//TODO: cleanup this mess!
 fn make_safe(name: &str) -> String {
-    let x1 = name.replace("\\", "");
-    let x2 = x1.replace("/", "");
-    let x3 = x2.replace("&", "");
-    let x4 = x3.replace(":", "");
-    let x5 = x4.replace("<", "");
-    
-    x5.replace(">", "")
+    name.replace("\\", "")
+        .replace("/", "")
+        .replace("&", "")
+        .replace(":", "")
+        .replace("<", "")
+        .replace(">", "")
 }
