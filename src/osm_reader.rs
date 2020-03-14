@@ -16,11 +16,7 @@ pub struct RelationNodes {
 use std::fmt;
 impl fmt::Debug for RelationNodes {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "RelationNodes {{ data: {:?}, points: {:?} }}",
-            self.relation, 0
-        )
+        write!(f, "RelationNodes {{ data: {:?}, points: {:?} }}", self.relation, 0)
     }
 }
 
@@ -40,46 +36,21 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
 
     let relation_id_to_relation = find_admin_boundary_relations(&mut pbf);
 
-    let relation_id_to_ways: HashMap<RelationId, Vec<WayId>> =
-        find_ways_for_relation_ids(&relation_id_to_relation);
-    let way_id_to_nodes: HashMap<WayId, Vec<NodeId>> =
+    let relation_id_to_ways: HashMap<RelationId, Vec<WayId>> = find_ways_for_relation_ids(&relation_id_to_relation);
+    let way_id_to_node_ids: HashMap<WayId, Vec<NodeId>> =
         find_nodes_for_way_ids(&mut pbf, hashmap_values_to_set(&relation_id_to_ways));
     let node_id_to_node: HashMap<NodeId, Node> =
-        find_nodes_for_node_ids(&mut pbf, hashmap_values_to_set(&way_id_to_nodes));
+        find_nodes_for_node_ids(&mut pbf, hashmap_values_to_set(&way_id_to_node_ids));
 
-    //TODO: make this nicer as well!
-    let mut relation_to_nodes: HashMap<RelationId, Vec<Vec<Node>>> = HashMap::new();
-    for (relation_id, way_ids) in relation_id_to_ways {
-        for way_id in way_ids {
-            let opt_node_ids = way_id_to_nodes.get(&way_id);
-            if opt_node_ids.is_none() {
-                continue;
-            }
-            let node_ids: Vec<NodeId> = opt_node_ids.unwrap().clone();
-
-            let nodes: Vec<Node> = node_ids
-                .iter()
-                .filter_map(|x| node_id_to_node.get(&x))
-                .cloned()
-                .collect();
-
-            relation_to_nodes
-                .entry(relation_id)
-                .or_insert_with(Vec::new)
-                .push(nodes);
-        }
-    }
-
-    //prepare output
-    let output: Vec<RelationNodes> = relation_to_nodes
+    let relation_to_nodes: Vec<RelationNodes> = relation_id_to_ways
         .iter()
-        .map(|(r_id, nodes)| RelationNodes {
-            relation: relation_id_to_relation.get(&r_id).unwrap().clone(),
-            nodes: nodes.to_vec(),
-        })
+        .map(|(r_id, way_ids)| (*r_id, get_node_ids(&way_ids, &way_id_to_node_ids)))
+        .map(|(r_id, node_ids)| (r_id, get_nodes(node_ids, &node_id_to_node)))
+        .map(|(r_id, node_ids)| (relation_id_to_relation.get(&r_id).unwrap().clone(), node_ids))
+        .map(|(relation, nodes)| RelationNodes { relation, nodes })
         .collect();
 
-    output
+    relation_to_nodes
 }
 
 fn has_proper_admin_level(relation: &Relation) -> bool {
@@ -93,10 +64,27 @@ fn has_proper_admin_level(relation: &Relation) -> bool {
 }
 
 fn get_ways(relation: &Relation) -> Vec<WayId> {
-    relation
-        .refs
+    relation.refs.iter().filter_map(|r| r.member.way()).collect()
+}
+
+fn get_node_ids(way_ids: &Vec<WayId>, way_id_to_node_ids: &HashMap<WayId, Vec<NodeId>>) -> Vec<Vec<NodeId>> {
+    way_ids
         .iter()
-        .filter_map(|r| r.member.way())
+        .filter_map(|way_id| way_id_to_node_ids.get(&way_id))
+        .cloned()
+        .collect()
+}
+
+fn get_nodes(v_node_ids: Vec<Vec<NodeId>>, node_id_to_node: &HashMap<NodeId, Node>) -> Vec<Vec<Node>> {
+    v_node_ids
+        .iter()
+        .map(|node_ids| {
+            node_ids
+                .iter()
+                .filter_map(|node_id| node_id_to_node.get(&node_id))
+                .cloned()
+                .collect()
+        })
         .collect()
 }
 
@@ -127,10 +115,7 @@ fn find_ways_for_relation_ids(
         .collect()
 }
 
-fn find_nodes_for_way_ids(
-    pbf: &mut OsmPbfReaderFile,
-    way_ids: HashSet<WayId>,
-) -> HashMap<WayId, Vec<NodeId>> {
+fn find_nodes_for_way_ids(pbf: &mut OsmPbfReaderFile, way_ids: HashSet<WayId>) -> HashMap<WayId, Vec<NodeId>> {
     let now = Instant::now();
 
     println!("parsing ways...");
@@ -148,10 +133,7 @@ fn find_nodes_for_way_ids(
     way_to_nodes
 }
 
-fn find_nodes_for_node_ids(
-    pbf: &mut OsmPbfReaderFile,
-    node_ids: HashSet<NodeId>,
-) -> HashMap<NodeId, Node> {
+fn find_nodes_for_node_ids(pbf: &mut OsmPbfReaderFile, node_ids: HashSet<NodeId>) -> HashMap<NodeId, Node> {
     let now = Instant::now();
 
     println!("parsing nodes...");

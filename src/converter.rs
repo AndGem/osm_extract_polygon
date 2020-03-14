@@ -15,11 +15,7 @@ pub struct Point {
 use std::fmt;
 impl fmt::Debug for Polygon {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "RelationNodes {{ name: {}, points: {:?} }}",
-            self.name, self.points
-        )
+        write!(f, "RelationNodes {{ name: {}, points: {:?} }}", self.name, self.points)
     }
 }
 
@@ -115,11 +111,7 @@ fn find_match(node_id: NodeId, mut nodes: Vec<Vec<Node>>) -> (Option<Vec<Node>>,
 }
 
 fn convert_to_poly(rn: RelationNodes) -> Polygon {
-    let points = rn
-        .nodes
-        .iter()
-        .map(|x| convert_nodes_to_points(x))
-        .collect();
+    let points = rn.nodes.iter().map(|x| convert_nodes_to_points(x)).collect();
 
     let name: String = rn
         .relation
@@ -128,12 +120,7 @@ fn convert_to_poly(rn: RelationNodes) -> Polygon {
         .unwrap_or(&"UNKNOWN_NAME".to_string())
         .clone();
 
-    let name_prefix = rn
-        .relation
-        .tags
-        .get("name:prefix")
-        .unwrap_or(&"".to_string())
-        .clone();
+    let name_prefix = rn.relation.tags.get("name:prefix").unwrap_or(&"".to_string()).clone();
 
     let fullname = if rn.relation.tags.contains_key("name:prefix") {
         format!("{}_{}", name_prefix, name)
@@ -141,10 +128,7 @@ fn convert_to_poly(rn: RelationNodes) -> Polygon {
         name
     };
 
-    Polygon {
-        name: fullname,
-        points,
-    }
+    Polygon { name: fullname, points }
 }
 
 fn convert_nodes_to_points(nodes: &[Node]) -> Vec<Point> {
