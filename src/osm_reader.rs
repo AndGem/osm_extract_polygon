@@ -1,4 +1,4 @@
-use osmpbfreader::{Node, NodeId, OsmId, OsmObj, OsmPbfReader, Relation, RelationId, WayId};
+use osmpbfreader::{Node, NodeId, OsmPbfReader, Relation, RelationId, WayId};
 
 use std::collections::{HashMap, HashSet};
 use std::time::Instant;
@@ -27,11 +27,6 @@ impl fmt::Debug for RelationNodes {
 pub fn read_osm(filename: &str) -> Vec<RelationNodes> {
     let file_reference = std::fs::File::open(&std::path::Path::new(filename)).unwrap();
     read_ways_and_relation(file_reference)
-}
-
-fn is_admin(obj: &osmpbfreader::OsmObj) -> bool {
-    // get relations with tags[boundary] == administrative
-    obj.is_relation() && obj.tags().contains("boundary", "administrative")
 }
 
 fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
@@ -112,7 +107,6 @@ fn find_admin_boundary_relations(
     HashMap<RelationId, Relation>,
     HashMap<RelationId, Vec<WayId>>,
 ) {
-
     let now = Instant::now();
     println!("parsing relations...");
 
@@ -130,7 +124,7 @@ fn find_admin_boundary_relations(
 
     let relation_to_ways: HashMap<RelationId, Vec<WayId>> = relation_id_to_relation
         .iter()
-        .map(|(relation_id, relation)| (relation_id.clone(), get_ways(relation)))
+        .map(|(relation_id, relation)| (*relation_id, get_ways(relation)))
         .collect();
 
     println!("parsing relations finished! {}s", now.elapsed().as_secs());
@@ -173,7 +167,7 @@ fn find_nodes_for_node_ids(
         .filter(|obj| obj.is_node())
         .map(|obj| obj.node().unwrap().clone())
         .filter(|node| node_ids.contains(&node.id))
-        .map(|node| (node.id, node.clone()))
+        .map(|node| (node.id, node))
         .collect();
 
     println!("parsing nodes finished! {}s", now.elapsed().as_secs());
