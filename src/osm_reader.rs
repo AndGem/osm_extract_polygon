@@ -14,13 +14,6 @@ pub struct RelationNodes {
     pub nodes: Vec<Vec<Node>>,
 }
 
-use std::fmt;
-impl fmt::Debug for RelationNodes {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "RelationNodes {{ data: {:?}, points: {:?} }}", self.relation, 0)
-    }
-}
-
 pub fn read_osm(filename: &str) -> Vec<RelationNodes> {
     let file_reference = std::fs::File::open(&std::path::Path::new(filename)).unwrap();
     read_ways_and_relation(file_reference)
