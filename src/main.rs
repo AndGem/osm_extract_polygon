@@ -3,6 +3,7 @@ extern crate osmpbfreader;
 mod converter;
 mod osm_reader;
 mod poly_writer;
+mod utils;
 
 fn main() {
     //TODO: argument parsing
