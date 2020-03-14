@@ -29,72 +29,35 @@ pub fn read_osm(filename: &str) -> Vec<RelationNodes> {
     read_ways_and_relation(file_reference)
 }
 
+fn is_admin(obj: &osmpbfreader::OsmObj) -> bool {
+    // get relations with tags[boundary] == administrative
+    obj.is_relation() && obj.tags().contains("boundary", "administrative")
+}
+
 fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
     let mut pbf: OsmPbfReaderFile = OsmPbfReader::new(file_reference);
 
-    let mut relation_id_to_relation: HashMap<RelationId, Relation> = HashMap::new();
-    let mut relation_to_nodes: HashMap<RelationId, Vec<Vec<Node>>> = HashMap::new();
+    let (relation_id_to_relation, relation_id_to_ways) = find_admin_boundary_relations(&mut pbf);
 
-    let mut relation_to_ways: HashMap<RelationId, Vec<WayId>> = HashMap::new();
-
-    let mut now = Instant::now();
-
-    println!("parsing relations...");
-    for obj in pbf.par_iter().map(Result::unwrap) {
-        if let OsmObj::Relation(relation) = obj {
-            //TOOD: do it similarly https://github.com/TeXitoi/osmpbfreader-rs/blob/3be099f8b35b0135c35e7d4050aa92807d4be243/src/reader.rs
-            if !relation.tags.contains("boundary", "administrative")
-                || !relation.tags.contains_key("admin_level")
-            {
-                continue;
-            }
-
-            let admin_level_parse = relation
-                .tags
-                .get("admin_level")
-                .unwrap()
-                .parse::<i8>()
-                .unwrap_or(MAX);
-
-            if admin_level_parse > 8 {
-                continue;
-            }
-
-            //TODO: this can be made nicer!
-            for entry in &relation.refs {
-                if !(entry.member.is_way()) {
-                    continue;
-                }
-
-                let way_id = entry.member.way().unwrap();
-
-                relation_to_ways
-                    .entry(relation.id)
-                    .or_insert_with(Vec::new)
-                    .push(way_id);
-            }
-
-            relation_id_to_relation.insert(relation.id, relation);
-        }
-    }
-
-    println!("parsing relations finished! {}s", now.elapsed().as_secs());
-    now = Instant::now();
-
-    let way_ids: HashSet<WayId> = relation_to_ways
+    let way_ids_for_relations: HashSet<WayId> = relation_id_to_ways
         .iter()
         .flat_map(|(_, v)| v.clone())
         .collect();
+    let way_id_to_nodes: HashMap<WayId, Vec<NodeId>> =
+        find_nodes_for_way_ids(&mut pbf, way_ids_for_relations);
 
-    let way_to_nodes: HashMap<WayId, Vec<NodeId>> = map_way_to_nodes(&mut pbf, way_ids);
-
-    let node_ids: HashSet<NodeId> = way_to_nodes.iter().flat_map(|(_, v)| v.clone()).collect();
-    let node_id_to_node = map_node_ids_to_nodes(&mut pbf, node_ids);
+    let node_ids_for_ways: HashSet<NodeId> = way_id_to_nodes
+        .iter()
+        .flat_map(|(_, v)| v.clone())
+        .collect();
+    let node_id_to_node: HashMap<NodeId, Node> =
+        find_nodes_for_node_ids(&mut pbf, node_ids_for_ways);
 
     //TODO: make this nicer as well!
-    for (relation_id, way_ids) in relation_to_ways {
+    let mut relation_to_nodes: HashMap<RelationId, Vec<Vec<Node>>> = HashMap::new();
+    for (relation_id, way_ids) in relation_id_to_ways {
         for way_id in way_ids {
-            let opt_node_ids = way_to_nodes.get(&way_id);
+            let opt_node_ids = way_id_to_nodes.get(&way_id);
             if opt_node_ids.is_none() {
                 continue;
             }
@@ -112,7 +75,6 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
                 .push(nodes);
         }
     }
-    println!("parsing nodes finished! {}s", now.elapsed().as_secs());
 
     //prepare output
     let output: Vec<RelationNodes> = relation_to_nodes
@@ -126,7 +88,60 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
     output
 }
 
-fn map_way_to_nodes(pbf: &mut OsmPbfReaderFile, way_ids: HashSet<WayId>) -> HashMap<WayId, Vec<NodeId>> {
+fn has_proper_admin_level(relation: &Relation) -> bool {
+    let admin_level: i8 = relation
+        .tags
+        .get("admin_level")
+        .and_then(|v| v.parse::<i8>().ok())
+        .unwrap_or(MAX);
+
+    admin_level <= 8
+}
+
+fn get_ways(relation: &Relation) -> Vec<WayId> {
+    relation
+        .refs
+        .iter()
+        .filter_map(|r| r.member.way())
+        .collect()
+}
+
+fn find_admin_boundary_relations(
+    pbf: &mut OsmPbfReaderFile,
+) -> (
+    HashMap<RelationId, Relation>,
+    HashMap<RelationId, Vec<WayId>>,
+) {
+
+    let now = Instant::now();
+    println!("parsing relations...");
+
+    let relation_id_to_relation: HashMap<RelationId, Relation> = pbf
+        .par_iter()
+        .map(Result::unwrap)
+        .filter(|obj| obj.is_relation())
+        .map(|obj| obj.relation().unwrap().clone())
+        .filter(|relation| relation.tags.contains("boundary", "administrative"))
+        .filter(|relation| has_proper_admin_level(relation))
+        .map(|relation| (relation.id, relation))
+        .collect();
+
+    println!("other stuff!");
+
+    let relation_to_ways: HashMap<RelationId, Vec<WayId>> = relation_id_to_relation
+        .iter()
+        .map(|(relation_id, relation)| (relation_id.clone(), get_ways(relation)))
+        .collect();
+
+    println!("parsing relations finished! {}s", now.elapsed().as_secs());
+
+    (relation_id_to_relation, relation_to_ways)
+}
+
+fn find_nodes_for_way_ids(
+    pbf: &mut OsmPbfReaderFile,
+    way_ids: HashSet<WayId>,
+) -> HashMap<WayId, Vec<NodeId>> {
     let now = Instant::now();
 
     println!("parsing ways...");
@@ -144,7 +159,10 @@ fn map_way_to_nodes(pbf: &mut OsmPbfReaderFile, way_ids: HashSet<WayId>) -> Hash
     way_to_nodes
 }
 
-fn map_node_ids_to_nodes(pbf: &mut OsmPbfReaderFile, node_ids: HashSet<NodeId>) -> HashMap<NodeId, Node> {
+fn find_nodes_for_node_ids(
+    pbf: &mut OsmPbfReaderFile,
+    node_ids: HashSet<NodeId>,
+) -> HashMap<NodeId, Node> {
     let now = Instant::now();
 
     println!("parsing nodes...");
