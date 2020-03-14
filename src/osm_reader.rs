@@ -56,7 +56,7 @@ fn extract_way_ids_from_relation(relation: &Relation) -> Vec<WayId> {
 }
 
 fn replace_way_id_with_node_ids(
-    way_ids: &Vec<WayId>,
+    way_ids: &[WayId],
     way_id_to_node_ids: &HashMap<WayId, Vec<NodeId>>,
 ) -> Vec<Vec<NodeId>> {
     way_ids
