@@ -29,24 +29,23 @@ pub fn read_osm(filename: &str) -> Vec<RelationNodes> {
     read_ways_and_relation(file_reference)
 }
 
+fn hashmap_values_to_set<K, V: std::hash::Hash + std::cmp::Eq + std::clone::Clone>(
+    map: &HashMap<K, Vec<V>>,
+) -> HashSet<V> {
+    map.iter().flat_map(|(_, v)| v.clone()).collect()
+}
+
 fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
     let mut pbf: OsmPbfReaderFile = OsmPbfReader::new(file_reference);
 
-    let (relation_id_to_relation, relation_id_to_ways) = find_admin_boundary_relations(&mut pbf);
+    let relation_id_to_relation = find_admin_boundary_relations(&mut pbf);
 
-    let way_ids_for_relations: HashSet<WayId> = relation_id_to_ways
-        .iter()
-        .flat_map(|(_, v)| v.clone())
-        .collect();
+    let relation_id_to_ways: HashMap<RelationId, Vec<WayId>> =
+        find_ways_for_relation_ids(&relation_id_to_relation);
     let way_id_to_nodes: HashMap<WayId, Vec<NodeId>> =
-        find_nodes_for_way_ids(&mut pbf, way_ids_for_relations);
-
-    let node_ids_for_ways: HashSet<NodeId> = way_id_to_nodes
-        .iter()
-        .flat_map(|(_, v)| v.clone())
-        .collect();
+        find_nodes_for_way_ids(&mut pbf, hashmap_values_to_set(&relation_id_to_ways));
     let node_id_to_node: HashMap<NodeId, Node> =
-        find_nodes_for_node_ids(&mut pbf, node_ids_for_ways);
+        find_nodes_for_node_ids(&mut pbf, hashmap_values_to_set(&way_id_to_nodes));
 
     //TODO: make this nicer as well!
     let mut relation_to_nodes: HashMap<RelationId, Vec<Vec<Node>>> = HashMap::new();
@@ -101,12 +100,7 @@ fn get_ways(relation: &Relation) -> Vec<WayId> {
         .collect()
 }
 
-fn find_admin_boundary_relations(
-    pbf: &mut OsmPbfReaderFile,
-) -> (
-    HashMap<RelationId, Relation>,
-    HashMap<RelationId, Vec<WayId>>,
-) {
+fn find_admin_boundary_relations(pbf: &mut OsmPbfReaderFile) -> HashMap<RelationId, Relation> {
     let now = Instant::now();
     println!("parsing relations...");
 
@@ -120,16 +114,17 @@ fn find_admin_boundary_relations(
         .map(|relation| (relation.id, relation))
         .collect();
 
-    println!("other stuff!");
+    println!("parsing relations finished! {}s", now.elapsed().as_secs());
+    relation_id_to_relation
+}
 
-    let relation_to_ways: HashMap<RelationId, Vec<WayId>> = relation_id_to_relation
+fn find_ways_for_relation_ids(
+    relation_id_to_relation: &HashMap<RelationId, Relation>,
+) -> HashMap<RelationId, Vec<WayId>> {
+    relation_id_to_relation
         .iter()
         .map(|(relation_id, relation)| (*relation_id, get_ways(relation)))
-        .collect();
-
-    println!("parsing relations finished! {}s", now.elapsed().as_secs());
-
-    (relation_id_to_relation, relation_to_ways)
+        .collect()
 }
 
 fn find_nodes_for_way_ids(
