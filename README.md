@@ -1,1 +1,1 @@
-# osm_to_polygon
+# osm_extract_polygon

@@ -1,5 +1,5 @@
 [package]
-name = "osm_to_polygon"
+name = "osm_extract_polygon"
 version = "0.1.0"
 authors = ["Andreas <andreas.gemsa@googlemail.com>"]
 edition = "2018"

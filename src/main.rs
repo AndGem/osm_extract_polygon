@@ -8,7 +8,7 @@ mod poly_writer;
 mod utils;
 
 fn main() {
-    let matches = App::new("osm to polygon")
+    let matches = App::new("osm_extract_polygon")
         .version("0.1")
         .author("Andreas <andreas.gemsa@googlemail.com>")
         .about(
