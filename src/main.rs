@@ -8,7 +8,7 @@ mod poly_writer;
 mod utils;
 
 fn main() {
-    let matches = App::new("osm_extract_polygon")
+    let matches = App::new("OSM Extract Polygon")
         .version("0.1")
         .author("Andreas <andreas.gemsa@googlemail.com>")
         .about(
@@ -27,8 +27,6 @@ fn main() {
 
     let in_filename = matches.value_of("INPUT").unwrap();
     println!("Using input file: {}", in_filename);
-
-    //TODO: write proper README
 
     let relations = osm_reader::read_osm(in_filename);
     let polygons = converter::convert(relations);
