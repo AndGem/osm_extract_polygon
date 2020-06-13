@@ -16,7 +16,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Build
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+    - name: Push to codecov.io
+      run: |
+        cargo install cargo-tarpaulin
+        cargo tarpaulin --out Xml
+        bash <(curl -s https://codecov.io/bash) -X gcov
