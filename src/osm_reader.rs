@@ -141,3 +141,23 @@ fn find_nodes_for_node_ids(pbf: &mut OsmPbfReaderFile, node_ids: HashSet<NodeId>
     println!("parsing nodes finished! {}s", now.elapsed().as_secs());
     node_id_to_node
 }
+
+
+#[cfg(test)]
+mod tests {
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+    use osmpbfreader::{Node, NodeId, OsmPbfReader, Relation, RelationId, WayId, Tags};
+
+    #[test]
+    fn test_empty_relation_has_not_proper_admin_level() {
+        let empty_relation = Relation {
+            id: RelationId(123),
+            tags: Tags::new(),
+            refs: Vec::new()
+        };
+
+        assert_eq!(has_proper_admin_level(&empty_relation), false);
+    }
+
+}
