@@ -1,6 +1,6 @@
 extern crate osmpbfreader;
 
-use clap::{App, Arg};
+use clap::{App, Arg, crate_version};
 
 mod converter;
 mod osm_reader;
@@ -9,7 +9,7 @@ mod utils;
 
 fn main() {
     let matches = App::new("OSM Extract Polygon")
-        .version("0.1")
+        .version(crate_version!())
         .author("Andreas <andreas.gemsa@googlemail.com>")
         .about(
             "Extracts administrative boundaries of OSM pbf files and produces polygon files compatible with Osmosis.",
