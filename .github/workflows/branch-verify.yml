@@ -23,7 +23,9 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
     - name: Push to codecov.io
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       run: |
         cargo install cargo-tarpaulin
         cargo tarpaulin --out Xml
-        bash <(curl -s https://codecov.io/bash) -X gcov
+        bash <(curl -s https://codecov.io/bash) -X gcov -t $CODECOV_TOKEN
