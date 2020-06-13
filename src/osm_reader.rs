@@ -8,6 +8,8 @@ use crate::utils::hashmap_values_to_set;
 
 type OsmPbfReaderFile = osmpbfreader::OsmPbfReader<std::fs::File>;
 
+const MAX_ADMIN_LEVEL:i8 = 8;
+
 #[derive(Clone)]
 pub struct RelationNodes {
     pub relation: Relation,
@@ -48,7 +50,7 @@ fn has_proper_admin_level(relation: &Relation) -> bool {
         .and_then(|v| v.parse::<i8>().ok())
         .unwrap_or(MAX);
 
-    admin_level <= 8
+    admin_level <= MAX_ADMIN_LEVEL
 }
 
 fn extract_way_ids_from_relation(relation: &Relation) -> Vec<WayId> {
@@ -147,7 +149,7 @@ fn find_nodes_for_node_ids(pbf: &mut OsmPbfReaderFile, node_ids: HashSet<NodeId>
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
-    use osmpbfreader::{Node, NodeId, OsmPbfReader, Relation, RelationId, WayId, Tags};
+    use osmpbfreader::{Tags};
 
     #[test]
     fn test_empty_relation_has_not_proper_admin_level() {
@@ -158,6 +160,42 @@ mod tests {
         };
 
         assert_eq!(has_proper_admin_level(&empty_relation), false);
+    }
+
+    #[test]
+    fn test_admin_level_too_high_is_not_valid() {
+        let tags: Tags = vec![("admin_level".to_string(), (MAX_ADMIN_LEVEL + 1).to_string())].into_iter().collect();
+        let empty_relation = Relation {
+            id: RelationId(123),
+            tags: tags,
+            refs: Vec::new()
+        };
+
+        assert_eq!(has_proper_admin_level(&empty_relation), false);
+    }
+
+    #[test]
+    fn test_admin_level_is_max_level_is_valid() {
+        let tags: Tags = vec![("admin_level".to_string(), MAX_ADMIN_LEVEL.to_string())].into_iter().collect();
+        let empty_relation = Relation {
+            id: RelationId(123),
+            tags: tags,
+            refs: Vec::new()
+        };
+
+        assert_eq!(has_proper_admin_level(&empty_relation), true);
+    }
+
+    #[test]
+    fn test_admin_level_is_0_valid() {
+        let tags: Tags = vec![("admin_level".to_string(), "0".to_string())].into_iter().collect();
+        let empty_relation = Relation {
+            id: RelationId(123),
+            tags: tags,
+            refs: Vec::new()
+        };
+
+        assert_eq!(has_proper_admin_level(&empty_relation), true);
     }
 
 }
