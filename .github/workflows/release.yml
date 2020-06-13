@@ -12,11 +12,11 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact_name: osm_to_polygon
-            asset_name: osm_to_polygon-linux-amd64
+            artifact_name: osm_extract_polygon
+            asset_name: osm_extract_polygon-linux-amd64
           - os: macos-latest
-            artifact_name: osm_to_polygon
-            asset_name: osm_to_polygon-macos-amd64
+            artifact_name: osm_extract_polygon
+            asset_name: osm_extract_polygon-macos-amd64
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
