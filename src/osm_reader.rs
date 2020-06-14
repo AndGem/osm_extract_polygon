@@ -147,55 +147,38 @@ fn find_nodes_for_node_ids(pbf: &mut OsmPbfReaderFile, node_ids: HashSet<NodeId>
 
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
-    use osmpbfreader::{Tags};
 
     #[test]
     fn test_empty_relation_has_not_proper_admin_level() {
-        let empty_relation = Relation {
-            id: RelationId(123),
-            tags: Tags::new(),
-            refs: Vec::new()
-        };
-
-        assert_eq!(has_proper_admin_level(&empty_relation), false);
+        let relation = create_relation(vec![]);
+        assert_eq!(has_proper_admin_level(&relation), false);
     }
 
     #[test]
     fn test_admin_level_too_high_is_not_valid() {
-        let tags: Tags = vec![("admin_level".to_string(), (MAX_ADMIN_LEVEL + 1).to_string())].into_iter().collect();
-        let empty_relation = Relation {
-            id: RelationId(123),
-            tags: tags,
-            refs: Vec::new()
-        };
-
-        assert_eq!(has_proper_admin_level(&empty_relation), false);
+        let relation = create_relation(vec![("admin_level".to_string(), (MAX_ADMIN_LEVEL+1).to_string())]);
+        assert_eq!(has_proper_admin_level(&relation), false);
     }
 
     #[test]
     fn test_admin_level_is_max_level_is_valid() {
-        let tags: Tags = vec![("admin_level".to_string(), MAX_ADMIN_LEVEL.to_string())].into_iter().collect();
-        let empty_relation = Relation {
-            id: RelationId(123),
-            tags: tags,
-            refs: Vec::new()
-        };
-
-        assert_eq!(has_proper_admin_level(&empty_relation), true);
+        let relation = create_relation(vec![("admin_level".to_string(), MAX_ADMIN_LEVEL.to_string())]);
+        assert_eq!(has_proper_admin_level(&relation), true);
     }
 
     #[test]
     fn test_admin_level_is_0_valid() {
-        let tags: Tags = vec![("admin_level".to_string(), "0".to_string())].into_iter().collect();
-        let empty_relation = Relation {
-            id: RelationId(123),
-            tags: tags,
-            refs: Vec::new()
-        };
+        let relation = create_relation(vec![("admin_level".to_string(), "0".to_string())]);
+        assert_eq!(has_proper_admin_level(&relation), true);
+    }
 
-        assert_eq!(has_proper_admin_level(&empty_relation), true);
+    fn create_relation(tags_pairs: Vec<(String, String)>) -> Relation {
+        Relation {
+            id: RelationId(123),
+            tags: tags_pairs.into_iter().collect(),
+            refs: Vec::new()
+        }
     }
 
 }
