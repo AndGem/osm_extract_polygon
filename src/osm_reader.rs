@@ -8,6 +8,8 @@ use crate::utils::hashmap_values_to_set;
 
 type OsmPbfReaderFile = osmpbfreader::OsmPbfReader<std::fs::File>;
 
+const MAX_ADMIN_LEVEL:i8 = 8;
+
 #[derive(Clone)]
 pub struct RelationNodes {
     pub relation: Relation,
@@ -48,7 +50,7 @@ fn has_proper_admin_level(relation: &Relation) -> bool {
         .and_then(|v| v.parse::<i8>().ok())
         .unwrap_or(MAX);
 
-    admin_level <= 8
+    admin_level <= MAX_ADMIN_LEVEL
 }
 
 fn extract_way_ids_from_relation(relation: &Relation) -> Vec<WayId> {
@@ -140,4 +142,43 @@ fn find_nodes_for_node_ids(pbf: &mut OsmPbfReaderFile, node_ids: HashSet<NodeId>
 
     println!("parsing nodes finished! {}s", now.elapsed().as_secs());
     node_id_to_node
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_empty_relation_has_not_proper_admin_level() {
+        let relation = create_relation(vec![]);
+        assert_eq!(has_proper_admin_level(&relation), false);
+    }
+
+    #[test]
+    fn test_admin_level_too_high_is_not_valid() {
+        let relation = create_relation(vec![("admin_level".to_string(), (MAX_ADMIN_LEVEL+1).to_string())]);
+        assert_eq!(has_proper_admin_level(&relation), false);
+    }
+
+    #[test]
+    fn test_admin_level_is_max_level_is_valid() {
+        let relation = create_relation(vec![("admin_level".to_string(), MAX_ADMIN_LEVEL.to_string())]);
+        assert_eq!(has_proper_admin_level(&relation), true);
+    }
+
+    #[test]
+    fn test_admin_level_is_0_valid() {
+        let relation = create_relation(vec![("admin_level".to_string(), "0".to_string())]);
+        assert_eq!(has_proper_admin_level(&relation), true);
+    }
+
+    fn create_relation(tags_pairs: Vec<(String, String)>) -> Relation {
+        Relation {
+            id: RelationId(123),
+            tags: tags_pairs.into_iter().collect(),
+            refs: Vec::new()
+        }
+    }
+
 }
