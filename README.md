@@ -1,6 +1,5 @@
 # OSM Extract Polygon
 [![codecov](https://codecov.io/gh/AndGem/osm_extract_polygon/branch/master/graph/badge.svg)](https://codecov.io/gh/AndGem/osm_extract_polygon)
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
