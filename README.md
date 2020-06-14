@@ -1,4 +1,5 @@
 # OSM Extract Polygon
+[![codecov](https://codecov.io/gh/AndGem/osm_extract_polygon/branch/master/graph/badge.svg)](https://codecov.io/gh/AndGem/osm_extract_polygon)
 
 This small and simple tool processes OSM pbf files to generate boundary polygons.
 
