@@ -18,7 +18,7 @@ jobs:
             artifact_name: osm_extract_polygon
             asset_name: osm_extract_polygon-macos-amd64
           - os: windows-latest
-            artifact_name: osm_extract_polygon
+            artifact_name: osm_extract_polygon.exe
             asset_name: osm_extract_polygon-windows-amd64
     steps:
       - name: Checkout code
