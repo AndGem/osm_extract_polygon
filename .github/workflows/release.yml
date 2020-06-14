@@ -30,7 +30,8 @@ jobs:
           strip target/release/${{ matrix.artifact_name }}
           mkdir ${{ matrix.asset_name }}
           cp target/release/${{ matrix.artifact_name }} ${{ matrix.asset_name }}/
-          cp README.md LICENSE ${{ matrix.asset_name }}/
+          cp README.md ${{ matrix.asset_name }}/
+          cp LICENSE ${{ matrix.asset_name }}/
           tar czvf ${{ matrix.asset_name }}.tar.gz ${{ matrix.asset_name }}
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v1-release
