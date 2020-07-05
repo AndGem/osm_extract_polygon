@@ -174,6 +174,7 @@ mod tests {
         assert_eq!(has_proper_admin_level(&relation, &min_admin_level, &8), false);
     }
 
+    #[test]
     fn test_min_equal_max_let_only_exact_level_through() {
         let min_admin_level = 3;
         let max_admin_level = min_admin_level;

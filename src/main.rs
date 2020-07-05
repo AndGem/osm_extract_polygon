@@ -1,6 +1,6 @@
 extern crate osmpbfreader;
 
-use clap::{App, Arg, crate_version, crate_authors};
+use clap::{App, AppSettings, Arg, crate_version, crate_authors};
 
 mod converter;
 mod osm_reader;
@@ -18,6 +18,7 @@ fn main() {
         .about(
             "Extracts administrative boundaries of OSM pbf files and produces polygon files compatible with Osmosis.",
         )
+        .setting(AppSettings::ArgRequiredElseHelp)
         .arg(
             Arg::with_name(INPUT_ARG)
                 .short("f")
@@ -32,9 +33,8 @@ fn main() {
                 .short("m")
                 .long("min")
                 .value_name("min_admin_level")
-                .help("minimum administrative level (can take value from 1-11)")
+                .help("minimum administrative level (can take value from 1-11) [default: 8]")
                 .required(false)
-                .default_value("8")
                 .takes_value(true),
         )
         .arg(
@@ -42,8 +42,7 @@ fn main() {
                 .short("x")
                 .long("max")
                 .value_name("max_admin_level")
-                .help("max administrative level (can take value from 1-11)")
-                .default_value("8")
+                .help("max administrative level (can take value from 1-11) [default: 8]")
                 .required(false)
                 .takes_value(true),
         )
@@ -52,8 +51,8 @@ fn main() {
     let in_filename = matches.value_of(INPUT_ARG).unwrap();
     println!("Using input file: {}", in_filename);
 
-    let min_admin_level = matches.value_of(MIN_ADMIN_LEVEL_ARG).unwrap().parse::<i8>().unwrap();
-    let max_admin_level = matches.value_of(MAX_ADMIN_LEVEL_ARG).unwrap().parse::<i8>().unwrap();
+    let min_admin_level = matches.value_of(MIN_ADMIN_LEVEL_ARG).unwrap_or("8").parse::<i8>().unwrap();
+    let max_admin_level = matches.value_of(MAX_ADMIN_LEVEL_ARG).unwrap_or("8").parse::<i8>().unwrap();
 
     if min_admin_level > max_admin_level {
         println!("error: --min={} has bigger value than --max={}", min_admin_level, max_admin_level);
