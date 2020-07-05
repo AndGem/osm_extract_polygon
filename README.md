@@ -10,6 +10,10 @@ The main question it answers is: How do I extract the polygon of an administrati
 
 In particular it looks for administrative boundaries (e.g., city boundaries, country boundaries, ...) and creates an output file per boundary that is in the [Osmosis Polygon format](https://wiki.openstreetmap.org/wiki/Osmosis/Polygon_Filter_File_Format).
 
+## Download
+
+Just head over to the [Releases](https://github.com/AndGem/osm_extract_polygon/releases) and grab the version for your operating system (macOS, Linux, and Windows supported).
+
 ## Usage
 
 ```sh
