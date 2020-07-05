@@ -1,4 +1,5 @@
 # OSM Extract Polygon
+
 [![codecov](https://codecov.io/gh/AndGem/osm_extract_polygon/branch/master/graph/badge.svg)](https://codecov.io/gh/AndGem/osm_extract_polygon)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -11,15 +12,35 @@ In particular it looks for administrative boundaries (e.g., city boundaries, cou
 
 ## Usage
 
-Execute:
+```sh
+OSM Extract Polygon 0.1.4
+Andreas <andreas.gemsa@googlemail.com>
+Extracts administrative boundaries of OSM pbf files and produces polygon files compatible with Osmosis.
+
+USAGE:
+    osm_extract_polygon [OPTIONS] --file <file>
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+    -f, --file <file>              input file
+    -x, --max <max_admin_level>    max administrative level (can take value from 1-11) [default: 8]
+    -m, --min <min_admin_level>    minimum administrative level (can take value from 1-11) [default: 8]
+```
+
+### Example
 
 ```sh
-osm_extract_polygon -f <INPUT_PBF_FILE>
+osm_extract_polygon -f karlsruhe-regbez-latest.osm.pbf
 ```
 
 The program will create a folder `<INPUT_PBF_FILE>_polygons/` in the same folder where the input file is.
 This folder contains for each administrative boundary it found and extract a `.poly` file.
 The name of the file is the name of the administrative boundary relation, potentially prefixed by a prefix defined in the relation under the tag `name:prefix`.
+
+For more information about the meaning of the minimum and maximum administrative level take a look into the [OSM Wiki](https://wiki.openstreetmap.org/wiki/Tag:boundary%3Dadministrative).
 
 ## Use Case: Extracting a smaller OSM file of a city
 

@@ -30,6 +30,7 @@ pub fn write(folder: &str, polygons: &[Polygon]) -> std::io::Result<usize> {
     Ok(polygons.len())
 }
 
+//TODO: this is probably not sufficient to be really safe
 fn make_safe(name: &str) -> String {
     name.replace("\\", "")
         .replace("/", "")

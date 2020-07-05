@@ -8,23 +8,21 @@ use crate::utils::hashmap_values_to_set;
 
 type OsmPbfReaderFile = osmpbfreader::OsmPbfReader<std::fs::File>;
 
-const MAX_ADMIN_LEVEL:i8 = 8;
-
 #[derive(Clone)]
 pub struct RelationNodes {
     pub relation: Relation,
     pub nodes: Vec<Vec<Node>>,
 }
 
-pub fn read_osm(filename: &str) -> Vec<RelationNodes> {
+pub fn read_osm(filename: &str, min_admin: &i8, max_admin: &i8) -> Vec<RelationNodes> {
     let file_reference = std::fs::File::open(&std::path::Path::new(filename)).unwrap();
-    read_ways_and_relation(file_reference)
+    read_ways_and_relation(file_reference, min_admin, max_admin)
 }
 
-fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
+fn read_ways_and_relation(file_reference: std::fs::File, min_admin: &i8, max_admin: &i8) -> Vec<RelationNodes> {
     let mut pbf: OsmPbfReaderFile = OsmPbfReader::new(file_reference);
 
-    let relation_id_to_relation = find_admin_boundary_relations(&mut pbf);
+    let relation_id_to_relation = find_admin_boundary_relations(&mut pbf, min_admin, max_admin);
 
     let relation_id_to_ways: HashMap<RelationId, Vec<WayId>> = find_ways_for_relation_ids(&relation_id_to_relation);
     let way_id_to_node_ids: HashMap<WayId, Vec<NodeId>> =
@@ -43,14 +41,14 @@ fn read_ways_and_relation(file_reference: std::fs::File) -> Vec<RelationNodes> {
     relation_to_nodes
 }
 
-fn has_proper_admin_level(relation: &Relation) -> bool {
+fn has_proper_admin_level(relation: &Relation, min_admin: &i8, max_admin: &i8) -> bool {
     let admin_level: i8 = relation
         .tags
         .get("admin_level")
         .and_then(|v| v.parse::<i8>().ok())
         .unwrap_or(MAX);
 
-    admin_level <= MAX_ADMIN_LEVEL
+    (*min_admin <= admin_level) && (admin_level <= *max_admin)
 }
 
 fn extract_way_ids_from_relation(relation: &Relation) -> Vec<WayId> {
@@ -81,7 +79,7 @@ fn replace_node_id_with_node(v_node_ids: Vec<Vec<NodeId>>, node_id_to_node: &Has
         .collect()
 }
 
-fn find_admin_boundary_relations(pbf: &mut OsmPbfReaderFile) -> HashMap<RelationId, Relation> {
+fn find_admin_boundary_relations(pbf: &mut OsmPbfReaderFile, min_admin: &i8, max_admin: &i8) -> HashMap<RelationId, Relation> {
     let now = Instant::now();
     println!("parsing relations...");
 
@@ -91,7 +89,7 @@ fn find_admin_boundary_relations(pbf: &mut OsmPbfReaderFile) -> HashMap<Relation
         .filter(|obj| obj.is_relation())
         .map(|obj| obj.relation().unwrap().clone())
         .filter(|relation| relation.tags.contains("boundary", "administrative"))
-        .filter(|relation| has_proper_admin_level(relation))
+        .filter(|relation| has_proper_admin_level(relation, min_admin, max_admin))
         .map(|relation| (relation.id, relation))
         .collect();
 
@@ -152,25 +150,41 @@ mod tests {
     #[test]
     fn test_empty_relation_has_not_proper_admin_level() {
         let relation = create_relation(vec![]);
-        assert_eq!(has_proper_admin_level(&relation), false);
+        assert_eq!(has_proper_admin_level(&relation, &1, &8), false);
     }
 
     #[test]
     fn test_admin_level_too_high_is_not_valid() {
-        let relation = create_relation(vec![("admin_level".to_string(), (MAX_ADMIN_LEVEL+1).to_string())]);
-        assert_eq!(has_proper_admin_level(&relation), false);
+        let max_admin_level = 8;
+        let relation = create_relation(vec![("admin_level".to_string(), (max_admin_level+1).to_string())]);
+        assert_eq!(has_proper_admin_level(&relation, &1, &max_admin_level), false);
     }
 
     #[test]
     fn test_admin_level_is_max_level_is_valid() {
-        let relation = create_relation(vec![("admin_level".to_string(), MAX_ADMIN_LEVEL.to_string())]);
-        assert_eq!(has_proper_admin_level(&relation), true);
+        let max_admin_level = 8;
+        let relation = create_relation(vec![("admin_level".to_string(), (max_admin_level).to_string())]);
+        assert_eq!(has_proper_admin_level(&relation, &1, &max_admin_level), true);
     }
 
     #[test]
-    fn test_admin_level_is_0_valid() {
+    fn test_min_admin_level_filters_out() {
+        let min_admin_level = 1;
         let relation = create_relation(vec![("admin_level".to_string(), "0".to_string())]);
-        assert_eq!(has_proper_admin_level(&relation), true);
+        assert_eq!(has_proper_admin_level(&relation, &min_admin_level, &8), false);
+    }
+
+    fn test_min_equal_max_let_only_exact_level_through() {
+        let min_admin_level = 3;
+        let max_admin_level = min_admin_level;
+
+        let relation_too_little = create_relation(vec![("admin_level".to_string(), (min_admin_level - 1).to_string())]);
+        let relation_exact = create_relation(vec![("admin_level".to_string(), min_admin_level.to_string())]);
+        let relation_too_big = create_relation(vec![("admin_level".to_string(), (max_admin_level+1).to_string())]);
+        
+        assert_eq!(has_proper_admin_level(&relation_too_little, &min_admin_level, &max_admin_level), false);
+        assert_eq!(has_proper_admin_level(&relation_exact, &min_admin_level, &max_admin_level), true);
+        assert_eq!(has_proper_admin_level(&relation_too_big, &min_admin_level, &max_admin_level), false);
     }
 
     fn create_relation(tags_pairs: Vec<(String, String)>) -> Relation {
