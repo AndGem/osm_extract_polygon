@@ -48,12 +48,13 @@ fn has_proper_admin_level(relation: &Relation, min_admin: &i8, max_admin: &i8) -
         .and_then(|v| v.parse::<i8>().ok())
         .unwrap_or(MAX);
 
+    let unknown = "UNKNOWN_NAME".to_string();
+
     let name = relation.tags
         .get("name")
-        .unwrap_or(&"UNKNOWN_NAME".to_string());
+        .unwrap_or(&unknown);
 
-
-    let accept: bool = ((*min_admin <= admin_level) && (admin_level <= *max_admin))
+    let accept: bool = (*min_admin <= admin_level) && (admin_level <= *max_admin);
     println!("{} with {}, accept: {}", name, admin_level, accept);
     accept
 }
