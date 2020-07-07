@@ -59,7 +59,7 @@ fn main() {
         std::process::exit(-1);
     }
     
-    let relations = osm_reader::read_osm(in_filename, &1, &8);
+    let relations = osm_reader::read_osm(in_filename, &min_admin_level, &max_admin_level);
     let polygons = converter::convert(relations);
     let path = format!("{}_polygons", in_filename);
     let result = poly_writer::write(&path, &polygons);
