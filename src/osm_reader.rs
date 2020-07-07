@@ -48,7 +48,14 @@ fn has_proper_admin_level(relation: &Relation, min_admin: &i8, max_admin: &i8) -
         .and_then(|v| v.parse::<i8>().ok())
         .unwrap_or(MAX);
 
-    (*min_admin <= admin_level) && (admin_level <= *max_admin)
+    let name = relation.tags
+        .get("name")
+        .unwrap_or(&"UNKNOWN_NAME".to_string());
+
+
+    let accept: bool = ((*min_admin <= admin_level) && (admin_level <= *max_admin))
+    println!("{} with {}, accept: {}", name, admin_level, accept);
+    accept
 }
 
 fn extract_way_ids_from_relation(relation: &Relation) -> Vec<WayId> {
@@ -142,6 +149,11 @@ fn find_nodes_for_node_ids(pbf: &mut OsmPbfReaderFile, node_ids: HashSet<NodeId>
     node_id_to_node
 }
 
+// ////////////////////////////////////
+// ////////////////////////////////////
+// UNIT TESTS
+// ////////////////////////////////////
+// ////////////////////////////////////
 
 #[cfg(test)]
 mod tests {
