@@ -3,19 +3,53 @@ use crate::converter::Polygon;
 use std::collections::HashMap;
 use std::fs::{create_dir_all, File};
 use std::io::prelude::*;
+use std::io::{self};
+use std::path::Path;
+
+#[derive(PartialEq)]
+enum ConflictMode {
+    Ask,
+    OverwriteAll,
+    SkipAll,
+    Skip,
+    Overwrite,
+}
 
 pub fn write(folder: &str, polygons: &[Polygon]) -> std::io::Result<usize> {
     let _create_result = create_dir_all(folder);
 
     let filename_polys = create_filenames(polygons);
 
+    let mut conflict_mode: ConflictMode = ConflictMode::Ask;
+
     for (name, polygon) in filename_polys {
         let filename = format!("{}/{}.poly", folder, name);
         println!("{}", filename);
-        let mut file = File::create(filename)?;
 
-        // TODO: add warnings about overwriting files
-        // let mut file = OpenOptions::new().write(true).create_new(true).open(filename)?;
+        let file_exists = Path::new(&filename).exists();
+        if file_exists {
+            if conflict_mode == ConflictMode::Ask {
+                let user_input = overwrite_handling(&filename);
+                match user_input {
+                    ConflictMode::Skip => continue,
+                    ConflictMode::SkipAll => conflict_mode = ConflictMode::SkipAll,
+                    ConflictMode::OverwriteAll => conflict_mode = ConflictMode::OverwriteAll,
+                    ConflictMode::Overwrite => {}
+                    _ => {}
+                }
+            }
+
+            match conflict_mode {
+                ConflictMode::SkipAll => {
+                    println!("... skipping");
+                    continue;
+                }
+                ConflictMode::OverwriteAll => {}
+                _ => {}
+            }
+        }
+
+        let mut file = File::create(filename)?;
 
         file.write_all(&polygon.name.as_bytes())?;
         file.write_all(b"\n")?;
@@ -36,6 +70,27 @@ pub fn write(folder: &str, polygons: &[Polygon]) -> std::io::Result<usize> {
     Ok(polygons.len())
 }
 
+fn overwrite_handling(filename: &str) -> ConflictMode {
+    let mut buffer = String::new();
+    loop {
+        println!("WARNING! osm_extract_polygon wanted to create the file {}, but it exists already. [s]kip, [o]verwrite, s[k]ip all, overwrite [a]ll?", filename);
+
+        io::stdin().read_line(&mut buffer).expect("Couldn't read line");
+
+        buffer = String::from(buffer.trim());
+
+        match buffer.as_str() {
+            "s" => return ConflictMode::Skip,
+            "o" => return ConflictMode::Overwrite,
+            "k" => return ConflictMode::SkipAll,
+            "a" => return ConflictMode::OverwriteAll,
+            _ => {
+                buffer = String::from("");
+            }
+        }
+    }
+}
+
 fn create_filenames(polygons: &[Polygon]) -> Vec<(String, &Polygon)> {
     let safe_names: Vec<String> = polygons
         .iter()
@@ -52,7 +107,8 @@ fn create_filenames(polygons: &[Polygon]) -> Vec<(String, &Polygon)> {
             let out_name;
             if duplicate_count.contains_key(name) {
                 let val = duplicate_count.get_mut(name).unwrap();
-                out_name = format!("{}_{}", name, val);
+                // out_name = format!("{}_{}", name, val);
+                out_name = name.to_string();
                 *val -= 1;
             } else {
                 out_name = name.to_string();
@@ -73,9 +129,8 @@ fn count_duplicate_names(safe_names: &[String]) -> HashMap<String, usize> {
     for x in safe_names {
         *m.entry(x.to_string()).or_default() += 1;
     }
-    let result = m.into_iter().filter(|&(_, v)| v != 1).collect();
-
-    return result;
+    
+    m.into_iter().filter(|&(_, v)| v != 1).collect()
 }
 
 // ////////////////////////////////////
@@ -211,13 +266,12 @@ mod tests {
         assert_eq!(result_names, expected);
     }
 
-
     #[test]
     fn test_create_filenames_ignores_cases() {
         let p1_name = String::from("spain_region");
         let p2_name = String::from("SPAin_RegION");
 
-        let expected = [p1_name.clone() + "_2",  p2_name.clone().to_lowercase() + "_1"];
+        let expected = [p1_name.clone() + "_2", p2_name.clone().to_lowercase() + "_1"];
 
         let p1 = Polygon {
             name: p1_name,
