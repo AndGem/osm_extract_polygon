@@ -17,7 +17,7 @@ Just head over to the [Releases](https://github.com/AndGem/osm_extract_polygon/r
 ## Usage
 
 ```sh
-OSM Extract Polygon 0.1.4
+OSM Extract Polygon 0.2.0
 Andreas <andreas.gemsa@googlemail.com>
 Extracts administrative boundaries of OSM pbf files and produces polygon files compatible with Osmosis.
 
