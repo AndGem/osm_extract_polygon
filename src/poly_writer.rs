@@ -107,8 +107,7 @@ fn create_filenames(polygons: &[Polygon]) -> Vec<(String, &Polygon)> {
             let out_name;
             if duplicate_count.contains_key(name) {
                 let val = duplicate_count.get_mut(name).unwrap();
-                // out_name = format!("{}_{}", name, val);
-                out_name = name.to_string();
+                out_name = format!("{}_{}", name, val);
                 *val -= 1;
             } else {
                 out_name = name.to_string();
