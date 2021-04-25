@@ -6,7 +6,7 @@ use std::io::prelude::*;
 use std::io::{self};
 use std::path::Path;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 enum ConflictMode {
     Ask,
     OverwriteAll,
@@ -22,29 +22,23 @@ pub fn write(folder: &str, polygons: &[Polygon]) -> std::io::Result<usize> {
 
     let mut conflict_mode: ConflictMode = ConflictMode::Ask;
 
+    let mut file_count: usize = 0;
+
     for (name, polygon) in filename_polys {
         let filename = format!("{}/{}.poly", folder, name);
         println!("{}", filename);
 
         let file_exists = Path::new(&filename).exists();
         if file_exists {
-            if conflict_mode == ConflictMode::Ask {
-                let user_input = overwrite_handling(&filename);
-                match user_input {
-                    ConflictMode::Skip => continue,
-                    ConflictMode::SkipAll => conflict_mode = ConflictMode::SkipAll,
-                    ConflictMode::OverwriteAll => conflict_mode = ConflictMode::OverwriteAll,
-                    ConflictMode::Overwrite => {}
-                    _ => {}
-                }
-            }
-
+            conflict_mode = overwrite_handling(&filename, conflict_mode);
             match conflict_mode {
+                ConflictMode::Skip => continue,
                 ConflictMode::SkipAll => {
                     println!("... skipping");
                     continue;
                 }
-                ConflictMode::OverwriteAll => {}
+                ConflictMode::OverwriteAll => {},
+                ConflictMode::Overwrite => {}
                 _ => {}
             }
         }
@@ -65,12 +59,18 @@ pub fn write(folder: &str, polygons: &[Polygon]) -> std::io::Result<usize> {
             index += 1;
         }
         file.write_all(b"END\n")?;
+
+        file_count += 1;
     }
 
-    Ok(polygons.len())
+    Ok(file_count)
 }
 
-fn overwrite_handling(filename: &str) -> ConflictMode {
+fn overwrite_handling(filename: &str, conflict_mode: ConflictMode) -> ConflictMode {
+    if conflict_mode == ConflictMode::OverwriteAll || conflict_mode == ConflictMode::SkipAll {
+        return conflict_mode;
+    }
+
     let mut buffer = String::new();
     loop {
         println!("WARNING! osm_extract_polygon wanted to create the file {}, but it exists already. [s]kip, [o]verwrite, s[k]ip all, overwrite [a]ll?", filename);
@@ -228,7 +228,7 @@ mod tests {
 
         let result = create_filenames(&input);
 
-        let result_names: Vec<String> = result.iter().map(|(x, y)| x).cloned().collect();
+        let result_names: Vec<String> = result.iter().map(|(x, _y)| x).cloned().collect();
 
         assert_eq!(result_names, expected);
     }
