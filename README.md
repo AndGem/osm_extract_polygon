@@ -17,7 +17,7 @@ Just head over to the [Releases](https://github.com/AndGem/osm_extract_polygon/r
 ## Usage
 
 ```sh
-OSM Extract Polygon 0.1.4
+OSM Extract Polygon 0.2.0
 Andreas <andreas.gemsa@googlemail.com>
 Extracts administrative boundaries of OSM pbf files and produces polygon files compatible with Osmosis.
 
@@ -43,6 +43,8 @@ osm_extract_polygon -f karlsruhe-regbez-latest.osm.pbf
 The program will create a folder `<INPUT_PBF_FILE>_polygons/` in the same folder where the input file is.
 This folder contains for each administrative boundary it found and extract a `.poly` file.
 The name of the file is the name of the administrative boundary relation, potentially prefixed by a prefix defined in the relation under the tag `name:prefix`.
+
+Should more than one administrative boundary result in the same name, then, to avoid overwriting files, the filenames will have postfixes `_1, _2, ...`. The ordering of these values is arbitrary.
 
 For more information about the meaning of the minimum and maximum administrative level take a look into the [OSM Wiki](https://wiki.openstreetmap.org/wiki/Tag:boundary%3Dadministrative).
 
