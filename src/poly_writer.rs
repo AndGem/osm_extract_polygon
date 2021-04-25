@@ -37,7 +37,7 @@ pub fn write(folder: &str, polygons: &[Polygon]) -> std::io::Result<usize> {
                     println!("... skipping");
                     continue;
                 }
-                ConflictMode::OverwriteAll => {},
+                ConflictMode::OverwriteAll => {}
                 ConflictMode::Overwrite => {}
                 _ => {}
             }
@@ -128,7 +128,7 @@ fn count_duplicate_names(safe_names: &[String]) -> HashMap<String, usize> {
     for x in safe_names {
         *m.entry(x.to_string()).or_default() += 1;
     }
-    
+
     m.into_iter().filter(|&(_, v)| v != 1).collect()
 }
 
