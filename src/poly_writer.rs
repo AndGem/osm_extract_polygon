@@ -93,7 +93,6 @@ fn create_filenames(polygons: &[Polygon]) -> Vec<(String, &Polygon)> {
     let safe_names: Vec<String> = polygons
         .iter()
         .map(|p| make_safe(&p.name))
-        .map(|name| name.to_lowercase())
         .collect();
 
     let mut duplicate_count: HashMap<String, usize> = count_duplicate_names(&safe_names);
@@ -103,8 +102,8 @@ fn create_filenames(polygons: &[Polygon]) -> Vec<(String, &Polygon)> {
         .zip(polygons.iter())
         .map(|(name, p)| {
             let out_name;
-            if duplicate_count.contains_key(name) {
-                let val = duplicate_count.get_mut(name).unwrap();
+            if duplicate_count.contains_key(&name.to_lowercase()) {
+                let val = duplicate_count.get_mut(&name.to_lowercase()).unwrap();
                 out_name = format!("{}_{}", name, val);
                 *val -= 1;
             } else {
@@ -124,7 +123,7 @@ fn make_safe(name: &str) -> String {
 fn count_duplicate_names(safe_names: &[String]) -> HashMap<String, usize> {
     let mut m: HashMap<String, usize> = HashMap::new();
     for x in safe_names {
-        *m.entry(x.to_string()).or_default() += 1;
+        *m.entry(x.to_string().to_lowercase()).or_default() += 1;
     }
 
     m.into_iter().filter(|&(_, v)| v != 1).collect()
@@ -188,6 +187,20 @@ mod tests {
     }
 
     #[test]
+    fn test_count_duplicates_when_input_contains_duplicates_then_have_them_in_hashmap_and_ignores_case() {
+        let p1_name = String::from("random_name");
+        let p1_name_copy = String::from("RandOm_NAme");
+        let p2_name = String::from("random_name2");
+
+        let expected: HashMap<String, usize> = [(p1_name.clone(), 2)].iter().cloned().collect();
+
+        let input = [p1_name, p2_name, p1_name_copy];
+
+        let result = count_duplicate_names(&input);
+
+        assert_eq!(result, expected);
+    }
+    #[test]
     fn test_create_filenames_add_extensions_to_duplicate_regions() {
         let p1_name = String::from("spain_region");
         let p1_name_clone = p1_name.clone();
@@ -233,7 +246,7 @@ mod tests {
 
     #[test]
     fn test_create_filenames_add_no_extensions_if_unique() {
-        let p1_name = String::from("spain_region");
+        let p1_name = String::from("spanish_region");
         let p2_name = String::from("french_region");
         let p3_name = String::from("german_region");
 
@@ -264,11 +277,11 @@ mod tests {
     }
 
     #[test]
-    fn test_create_filenames_ignores_cases() {
-        let p1_name = String::from("spain_region");
-        let p2_name = String::from("SPAin_RegION");
+    fn test_create_filenames_ignores_case_for_duplicates_but_retains_original() {
+        let p1_name = String::from("spanish_region");
+        let p2_name = String::from("SPAniSh_RegION");
 
-        let expected = [p1_name.clone() + "_2", p2_name.clone().to_lowercase() + "_1"];
+        let expected = [p1_name.clone() + "_2", p2_name.clone() + "_1"];
 
         let p1 = Polygon {
             name: p1_name,
