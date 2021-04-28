@@ -17,19 +17,23 @@ Just head over to the [Releases](https://github.com/AndGem/osm_extract_polygon/r
 ## Usage
 
 ```sh
-OSM Extract Polygon 0.2.0
+OSM Extract Polygon 0.2.1
 Andreas <andreas.gemsa@googlemail.com>
 Extracts administrative boundaries of OSM pbf files and produces polygon files compatible with Osmosis.
 
 USAGE:
-    osm_extract_polygon [OPTIONS] --file <file>
+    osm_extract_polygon [FLAGS] [OPTIONS] --file <filename>
 
 FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
+    -o, --overwrite    set this flag to overwrite files without asking; if neither this nor --skip is set the user is
+                       being prompted should a file be overwritten.
+    -s, --skip         set this flag to skip overwriting files; if neither this nor --overwrite is set the user is being
+                       prompted should a file be overwritten.
+    -h, --help         Prints help information
+    -V, --version      Prints version information
 
 OPTIONS:
-    -f, --file <file>              input file
+    -f, --file <filename>          input file
     -x, --max <max_admin_level>    max administrative level (can take value from 1-11) [default: 8]
     -m, --min <min_admin_level>    minimum administrative level (can take value from 1-11) [default: 8]
 ```
