@@ -90,10 +90,7 @@ fn overwrite_handling(filename: &str, conflict_mode: ConflictMode) -> ConflictMo
 }
 
 fn create_filenames(polygons: &[Polygon]) -> Vec<(String, &Polygon)> {
-    let safe_names: Vec<String> = polygons
-        .iter()
-        .map(|p| make_safe(&p.name))
-        .collect();
+    let safe_names: Vec<String> = polygons.iter().map(|p| make_safe(&p.name)).collect();
 
     let mut duplicate_count: HashMap<String, usize> = count_duplicate_names(&safe_names);
 
