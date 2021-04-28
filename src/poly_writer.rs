@@ -7,7 +7,7 @@ use std::io::{self};
 use std::path::Path;
 
 #[derive(PartialEq, Clone)]
-enum ConflictMode {
+pub enum ConflictMode {
     Ask,
     OverwriteAll,
     SkipAll,
@@ -15,12 +15,10 @@ enum ConflictMode {
     Overwrite,
 }
 
-pub fn write(folder: &str, polygons: &[Polygon]) -> std::io::Result<usize> {
+pub fn write(folder: &str, polygons: &[Polygon], mut conflict_mode: ConflictMode) -> std::io::Result<usize> {
     let _create_result = create_dir_all(folder);
 
     let filename_polys = create_filenames(polygons);
-
-    let mut conflict_mode: ConflictMode = ConflictMode::Ask;
 
     let mut file_count: usize = 0;
 

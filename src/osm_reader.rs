@@ -79,7 +79,11 @@ fn replace_node_id_with_node(v_node_ids: Vec<Vec<NodeId>>, node_id_to_node: &Has
         .collect()
 }
 
-fn find_admin_boundary_relations(pbf: &mut OsmPbfReaderFile, min_admin: &i8, max_admin: &i8) -> HashMap<RelationId, Relation> {
+fn find_admin_boundary_relations(
+    pbf: &mut OsmPbfReaderFile,
+    min_admin: &i8,
+    max_admin: &i8,
+) -> HashMap<RelationId, Relation> {
     let now = Instant::now();
     println!("parsing relations...");
 
@@ -161,7 +165,7 @@ mod tests {
     #[test]
     fn test_admin_level_too_high_is_not_valid() {
         let max_admin_level = 8;
-        let relation = create_relation(vec![("admin_level".to_string(), (max_admin_level+1).to_string())]);
+        let relation = create_relation(vec![("admin_level".to_string(), (max_admin_level + 1).to_string())]);
         assert_eq!(has_proper_admin_level(&relation, &1, &max_admin_level), false);
     }
 
@@ -186,19 +190,27 @@ mod tests {
 
         let relation_too_little = create_relation(vec![("admin_level".to_string(), (min_admin_level - 1).to_string())]);
         let relation_exact = create_relation(vec![("admin_level".to_string(), min_admin_level.to_string())]);
-        let relation_too_big = create_relation(vec![("admin_level".to_string(), (max_admin_level+1).to_string())]);
-        
-        assert_eq!(has_proper_admin_level(&relation_too_little, &min_admin_level, &max_admin_level), false);
-        assert_eq!(has_proper_admin_level(&relation_exact, &min_admin_level, &max_admin_level), true);
-        assert_eq!(has_proper_admin_level(&relation_too_big, &min_admin_level, &max_admin_level), false);
+        let relation_too_big = create_relation(vec![("admin_level".to_string(), (max_admin_level + 1).to_string())]);
+
+        assert_eq!(
+            has_proper_admin_level(&relation_too_little, &min_admin_level, &max_admin_level),
+            false
+        );
+        assert_eq!(
+            has_proper_admin_level(&relation_exact, &min_admin_level, &max_admin_level),
+            true
+        );
+        assert_eq!(
+            has_proper_admin_level(&relation_too_big, &min_admin_level, &max_admin_level),
+            false
+        );
     }
 
     fn create_relation(tags_pairs: Vec<(String, String)>) -> Relation {
         Relation {
             id: RelationId(123),
             tags: tags_pairs.into_iter().collect(),
-            refs: Vec::new()
+            refs: Vec::new(),
         }
     }
-
 }
