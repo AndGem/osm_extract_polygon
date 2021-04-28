@@ -7,7 +7,7 @@ use std::io::{self};
 use std::path::Path;
 
 #[derive(PartialEq, Clone)]
-enum ConflictMode {
+pub enum ConflictMode {
     Ask,
     OverwriteAll,
     SkipAll,
@@ -15,12 +15,10 @@ enum ConflictMode {
     Overwrite,
 }
 
-pub fn write(folder: &str, polygons: &[Polygon]) -> std::io::Result<usize> {
+pub fn write(folder: &str, polygons: &[Polygon], mut conflict_mode: ConflictMode) -> std::io::Result<usize> {
     let _create_result = create_dir_all(folder);
 
     let filename_polys = create_filenames(polygons);
-
-    let mut conflict_mode: ConflictMode = ConflictMode::Ask;
 
     let mut file_count: usize = 0;
 
@@ -92,10 +90,7 @@ fn overwrite_handling(filename: &str, conflict_mode: ConflictMode) -> ConflictMo
 }
 
 fn create_filenames(polygons: &[Polygon]) -> Vec<(String, &Polygon)> {
-    let safe_names: Vec<String> = polygons
-        .iter()
-        .map(|p| make_safe(&p.name))
-        .collect();
+    let safe_names: Vec<String> = polygons.iter().map(|p| make_safe(&p.name)).collect();
 
     let mut duplicate_count: HashMap<String, usize> = count_duplicate_names(&safe_names);
 
