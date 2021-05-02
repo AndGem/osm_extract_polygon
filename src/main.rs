@@ -1,12 +1,15 @@
 extern crate osmpbfreader;
 
 use clap::{crate_authors, crate_version, App, AppSettings, Arg};
-use poly_writer::ConflictMode;
+use file_creation_handler::OverwriteConfiguration;
 
 mod converter;
 mod osm_reader;
 mod poly_writer;
 mod utils;
+mod file_creation_handler;
+mod writer;
+
 
 fn main() {
     const INPUT_ARG: &str = "INPUT";
@@ -93,11 +96,11 @@ fn main() {
     }
 
     let conflict_mode = if overwrite_all {
-        ConflictMode::OverwriteAll
+        OverwriteConfiguration::OverwriteAll
     } else if skip_all {
-        ConflictMode::SkipAll
+        OverwriteConfiguration::SkipAll
     } else {
-        ConflictMode::Ask
+        OverwriteConfiguration::Ask
     };
 
     let in_filename = matches.value_of(INPUT_ARG).unwrap();
@@ -106,7 +109,7 @@ fn main() {
     let relations = osm_reader::read_osm(in_filename, &min_admin_level, &max_admin_level);
     let polygons = converter::convert(relations);
     let path = format!("{}_polygons", in_filename);
-    let result = poly_writer::write(&path, &polygons, conflict_mode);
+    let result = writer::write(&path, &polygons, conflict_mode);
 
     match result {
         Ok(size) => println!("success! wrote {} files!", size),
