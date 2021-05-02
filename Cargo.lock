@@ -113,11 +113,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "geo-types"
+version = "0.7.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d8bd2e95dd9f5c8ff74159ed9205ad7fd239a9569173a550863976421b45d2bb"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "geojson"
 version = "0.22.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c209e446d28d9142fb23127808bef2a1485924e7b42cd8c9407ea7cbfe09ccc"
 dependencies = [
+ "geo-types",
  "serde",
  "serde_json",
  "thiserror",
@@ -155,6 +165,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "num-traits"
+version = "0.2.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a64b1ec5cda2586e284722486d802acf1f7dbdc623e2bfc57e65ca1cd099290"
+dependencies = [
+ "autocfg",
+]
+
+[[package]]
 name = "num_cpus"
 version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -169,6 +188,7 @@ name = "osm_extract_polygon"
 version = "0.2.1"
 dependencies = [
  "clap",
+ "geo-types",
  "geojson",
  "osmpbfreader",
  "protobuf-codegen-pure",

@@ -9,7 +9,8 @@ edition = "2018"
 [dependencies]
 osmpbfreader = "0.13.4"
 clap = "2.33.3"
-geojson= "*"
+geojson = { version =  "0.22.0", features=["geo-types"] }
+geo-types = "0.7.0"
 
 [build-dependencies]
 protobuf-codegen-pure = "2"
