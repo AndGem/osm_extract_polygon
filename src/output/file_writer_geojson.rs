@@ -14,6 +14,9 @@ impl FileWriter for GeoJsonWriter {
         let vec_polygons = convert_polygon_to_geo_polygons(polygon);
         let multipolygon = MultiPolygon(vec_polygons);
 
+        //TODO: need to add this to a Geometry
+        //TODO: add name
+
         let json = geojson::Value::from(&multipolygon);
 
         file.write_all(json.to_string().as_bytes())?;
