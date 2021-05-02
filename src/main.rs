@@ -1,11 +1,11 @@
 extern crate osmpbfreader;
 
+use crate::output::OverwriteConfiguration;
 use clap::{crate_authors, crate_version, App, AppSettings, Arg};
-use poly_writer::ConflictMode;
 
 mod converter;
 mod osm_reader;
-mod poly_writer;
+mod output;
 mod utils;
 
 fn main() {
@@ -65,6 +65,8 @@ fn main() {
         )
         .get_matches();
 
+        //TODO: Add input for geojson output
+
     let min_admin_level = matches
         .value_of(MIN_ADMIN_LEVEL_ARG)
         .unwrap_or("8")
@@ -87,17 +89,17 @@ fn main() {
     let overwrite_all = matches.is_present(OVERWRITE_ARG);
     let skip_all = matches.is_present(SKIP_ARG);
 
-    if overwrite_all == true && skip_all == true {
+    if overwrite_all && skip_all {
         println!("error: cannot set both -o (--overwrite) and -s (--skip)!");
         std::process::exit(-1);
     }
 
     let conflict_mode = if overwrite_all {
-        ConflictMode::OverwriteAll
+        OverwriteConfiguration::OverwriteAll
     } else if skip_all {
-        ConflictMode::SkipAll
+        OverwriteConfiguration::SkipAll
     } else {
-        ConflictMode::Ask
+        OverwriteConfiguration::Ask
     };
 
     let in_filename = matches.value_of(INPUT_ARG).unwrap();
@@ -106,7 +108,7 @@ fn main() {
     let relations = osm_reader::read_osm(in_filename, &min_admin_level, &max_admin_level);
     let polygons = converter::convert(relations);
     let path = format!("{}_polygons", in_filename);
-    let result = poly_writer::write(&path, &polygons, conflict_mode);
+    let result = output::output_handler::write(&path, &polygons, conflict_mode);
 
     match result {
         Ok(size) => println!("success! wrote {} files!", size),

@@ -1,95 +1,105 @@
 use crate::converter::Polygon;
+use crate::output::file_creator::FileCreator;
+use crate::output::file_writer_geojson::GeoJsonWriter;
+use crate::output::file_writer_poly::PolyWriter;
+use crate::output::OverwriteConfiguration;
+
+use std::fs::File;
 
 use std::collections::HashMap;
-use std::fs::{create_dir_all, File};
-use std::io::prelude::*;
-use std::io::{self};
-use std::path::Path;
+use std::fs::create_dir_all;
 
-#[derive(PartialEq, Clone)]
-pub enum ConflictMode {
-    Ask,
-    OverwriteAll,
-    SkipAll,
-    Skip,
-    Overwrite,
+pub trait FileWriter {
+    fn write_to_file(&self, file: &mut File, polygon: &Polygon) -> std::io::Result<()>;
 }
 
-pub fn write(folder: &str, polygons: &[Polygon], mut conflict_mode: ConflictMode) -> std::io::Result<usize> {
-    let _create_result = create_dir_all(folder);
+pub fn write(
+    folder: &str,
+    polygons: &[Polygon],
+    overwrite_configuration: OverwriteConfiguration,
+) -> std::io::Result<u64> {
+    let _create_result = create_dir_all(folder)?;
 
-    let filename_polys = create_filenames(polygons);
+    let filename_polys = pair_safe_filenames_and_polygons(polygons);
 
-    let mut file_count: usize = 0;
+    let mut output_handler = new_output_hanlder(
+        FileCreator {
+            overwrite_mode_config: overwrite_configuration,
+        },
+        true,
+    );
 
-    for (name, polygon) in filename_polys {
-        let filename = format!("{}/{}.poly", folder, name);
-        println!("{}", filename);
+    output_handler.write_files(folder, filename_polys)
+}
 
-        let file_exists = Path::new(&filename).exists();
-        if file_exists {
-            conflict_mode = overwrite_handling(&filename, conflict_mode);
-            match conflict_mode {
-                ConflictMode::Skip => continue,
-                ConflictMode::SkipAll => {
-                    println!("... skipping");
-                    continue;
+fn new_output_hanlder(file_creator: FileCreator, write_geojson: bool) -> OutputHandler {
+    OutputHandler {
+        file_creator,
+        write_poly: true,
+        write_geojson,
+    }
+}
+
+struct OutputHandler {
+    file_creator: FileCreator,
+    write_poly: bool,
+    write_geojson: bool,
+}
+
+impl OutputHandler {
+    pub fn write_files(&mut self, base_folder: &str, filename_polys: Vec<(String, &Polygon)>) -> std::io::Result<u64> {
+        let mut file_count: u64 = 0;
+
+        let poly_writer = PolyWriter {};
+        let geojson_writer = GeoJsonWriter {};
+
+        for (name, polygon) in filename_polys {
+            let filename_wo_ext = format!("{}/{}", base_folder, name);
+            if self.write_poly {
+                let success_poly = self.write_file(&filename_wo_ext, "poly", polygon, &poly_writer);
+                if success_poly {
+                    file_count += 1;
                 }
-                ConflictMode::OverwriteAll => {}
-                ConflictMode::Overwrite => {}
-                _ => {}
+            }
+            if self.write_geojson {
+                let success_geojson = self.write_file(&filename_wo_ext, "geojson", polygon, &geojson_writer);
+                if success_geojson {
+                    file_count += 1;
+                }
             }
         }
 
-        let mut file = File::create(filename)?;
+        Ok(file_count)
+    }
 
-        file.write_all(&polygon.name.as_bytes())?;
-        file.write_all(b"\n")?;
+    pub fn write_file(
+        &mut self,
+        filename_wo_ext: &str,
+        ext: &str,
+        polygon: &Polygon,
+        file_writer: &impl FileWriter,
+    ) -> bool {
+        let filename = format!("{}.{}", filename_wo_ext, ext);
 
-        let mut index: i32 = 1;
-        for points in &polygon.points {
-            file.write_fmt(format_args!("area_{}\n", index))?;
-            for point in points {
-                file.write_fmt(format_args!("\t{} \t{}\n", point.lon, point.lat))?;
+        let result = self
+            .file_creator
+            .create_file(&filename)
+            .and_then(|mut file| file_writer.write_to_file(&mut file, polygon));
+
+        match result {
+            Err(e) => {
+                println!("{}: {}", filename, e);
+                false
             }
-
-            file.write_all(b"END\n")?;
-            index += 1;
-        }
-        file.write_all(b"END\n")?;
-
-        file_count += 1;
-    }
-
-    Ok(file_count)
-}
-
-fn overwrite_handling(filename: &str, conflict_mode: ConflictMode) -> ConflictMode {
-    if conflict_mode == ConflictMode::OverwriteAll || conflict_mode == ConflictMode::SkipAll {
-        return conflict_mode;
-    }
-
-    let mut buffer = String::new();
-    loop {
-        println!("WARNING! osm_extract_polygon wanted to create the file {}, but it exists already. [s]kip, [o]verwrite, s[k]ip all, overwrite [a]ll?", filename);
-
-        io::stdin().read_line(&mut buffer).expect("Couldn't read line");
-
-        buffer = String::from(buffer.trim());
-
-        match buffer.as_str() {
-            "s" => return ConflictMode::Skip,
-            "o" => return ConflictMode::Overwrite,
-            "k" => return ConflictMode::SkipAll,
-            "a" => return ConflictMode::OverwriteAll,
-            _ => {
-                buffer = String::from("");
+            Ok(_) => {
+                println!("{}: successfully written ", filename);
+                true
             }
         }
     }
 }
 
-fn create_filenames(polygons: &[Polygon]) -> Vec<(String, &Polygon)> {
+fn pair_safe_filenames_and_polygons(polygons: &[Polygon]) -> Vec<(String, &Polygon)> {
     let safe_names: Vec<String> = polygons.iter().map(|p| make_safe(&p.name)).collect();
 
     let mut duplicate_count: HashMap<String, usize> = count_duplicate_names(&safe_names);
@@ -234,7 +244,7 @@ mod tests {
 
         let input = [p1, p2, p3, p4];
 
-        let result = create_filenames(&input);
+        let result = pair_safe_filenames_and_polygons(&input);
 
         let result_names: Vec<String> = result.iter().map(|(x, _y)| x).cloned().collect();
 
@@ -266,7 +276,7 @@ mod tests {
 
         let input = [p1, p2, p3];
 
-        let result = create_filenames(&input);
+        let result = pair_safe_filenames_and_polygons(&input);
 
         let result_names: Vec<String> = result.iter().map(|(x, _y)| x).cloned().collect();
 
@@ -292,7 +302,7 @@ mod tests {
 
         let input = [p1, p2];
 
-        let result = create_filenames(&input);
+        let result = pair_safe_filenames_and_polygons(&input);
 
         let result_names: Vec<String> = result.iter().map(|(x, _y)| x).cloned().collect();
 
