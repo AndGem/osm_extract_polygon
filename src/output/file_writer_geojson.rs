@@ -31,7 +31,7 @@ fn convert_polygon_to_geo_polygons(polygon: &Polygon) -> Vec<GeoPolygon<f32>> {
         .collect()
 }
 
-fn convert_to_linestring(points: &Vec<Point>) -> LineString<f32> {
+fn convert_to_linestring(points: &[Point]) -> LineString<f32> {
     LineString(points.iter().map(|p| Coordinate { x: p.lon, y: p.lat }).collect())
 }
 
