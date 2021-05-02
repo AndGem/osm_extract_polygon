@@ -1,5 +1,6 @@
 extern crate osmpbfreader;
 
+use crate::output::output_handler::OutputHandlerConfiguration;
 use crate::output::OverwriteConfiguration;
 use clap::{crate_authors, crate_version, App, AppSettings, Arg};
 
@@ -14,6 +15,7 @@ fn main() {
     const MAX_ADMIN_LEVEL_ARG: &str = "MAX_ADMIN_LEVEL";
     const OVERWRITE_ARG: &str = "OVERWRITE";
     const SKIP_ARG: &str = "SKIP";
+    const GEOJSON_ARG: &str = "GEOJSON";
 
     let matches = App::new("OSM Extract Polygon")
         .version(crate_version!())
@@ -63,9 +65,14 @@ fn main() {
             .takes_value(false)
             .help("set this flag to skip overwriting files; if neither this nor --overwrite is set the user is being prompted should a file be overwritten.")
         )
+        .arg(
+            Arg::with_name(GEOJSON_ARG)
+            .short("g")
+            .long("geojson")
+            .takes_value(false)
+            .help("set this flag to generate geojson output")
+        )
         .get_matches();
-
-        //TODO: Add input for geojson output
 
     let min_admin_level = matches
         .value_of(MIN_ADMIN_LEVEL_ARG)
@@ -94,12 +101,19 @@ fn main() {
         std::process::exit(-1);
     }
 
-    let conflict_mode = if overwrite_all {
+    let overwrite_configuration = if overwrite_all {
         OverwriteConfiguration::OverwriteAll
     } else if skip_all {
         OverwriteConfiguration::SkipAll
     } else {
         OverwriteConfiguration::Ask
+    };
+
+    let geojson_output = matches.is_present(GEOJSON_ARG);
+
+    let output_handler_config = OutputHandlerConfiguration {
+        overwrite_configuration,
+        geojson_output,
     };
 
     let in_filename = matches.value_of(INPUT_ARG).unwrap();
@@ -108,7 +122,7 @@ fn main() {
     let relations = osm_reader::read_osm(in_filename, &min_admin_level, &max_admin_level);
     let polygons = converter::convert(relations);
     let path = format!("{}_polygons", in_filename);
-    let result = output::output_handler::write(&path, &polygons, conflict_mode);
+    let result = output::output_handler::write(&path, &polygons, output_handler_config);
 
     match result {
         Ok(size) => println!("success! wrote {} files!", size),

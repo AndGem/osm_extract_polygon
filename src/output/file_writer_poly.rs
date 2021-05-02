@@ -11,6 +11,8 @@ impl FileWriter for PolyWriter {
         file.write_all(&polygon.name.as_bytes())?;
         file.write_all(b"\n")?;
         let mut index: i32 = 1;
+
+        //TODO: improve performance by preparing output
         for points in &polygon.points {
             file.write_fmt(format_args!("area_{}\n", index))?;
             for point in points {

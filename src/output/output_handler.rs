@@ -13,30 +13,28 @@ pub trait FileWriter {
     fn write_to_file(&self, file: &mut File, polygon: &Polygon) -> std::io::Result<()>;
 }
 
-pub fn write(
-    folder: &str,
-    polygons: &[Polygon],
-    overwrite_configuration: OverwriteConfiguration,
-) -> std::io::Result<u64> {
+pub struct OutputHandlerConfiguration {
+    pub overwrite_configuration: OverwriteConfiguration,
+    pub geojson_output: bool,
+}
+
+pub fn write(folder: &str, polygons: &[Polygon], config: OutputHandlerConfiguration) -> std::io::Result<u64> {
     let _create_result = create_dir_all(folder)?;
 
     let filename_polys = pair_safe_filenames_and_polygons(polygons);
 
-    let mut output_handler = new_output_hanlder(
-        FileCreator {
-            overwrite_mode_config: overwrite_configuration,
-        },
-        true,
-    );
+    let mut output_handler = new_output_handler(config);
 
     output_handler.write_files(folder, filename_polys)
 }
 
-fn new_output_hanlder(file_creator: FileCreator, write_geojson: bool) -> OutputHandler {
+fn new_output_handler(config: OutputHandlerConfiguration) -> OutputHandler {
     OutputHandler {
-        file_creator,
+        file_creator: FileCreator {
+            overwrite_mode_config: config.overwrite_configuration,
+        },
         write_poly: true,
-        write_geojson,
+        write_geojson: config.geojson_output,
     }
 }
 
