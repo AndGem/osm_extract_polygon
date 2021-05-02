@@ -65,6 +65,8 @@ fn main() {
         )
         .get_matches();
 
+        //TODO: Add input for geojson output
+
     let min_admin_level = matches
         .value_of(MIN_ADMIN_LEVEL_ARG)
         .unwrap_or("8")

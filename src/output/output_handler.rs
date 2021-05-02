@@ -14,9 +14,6 @@ pub trait FileWriter {
     fn write_to_file(&self, file: &mut File, polygon: &Polygon) -> std::io::Result<()>;
 }
 
-//TODO: I don't like the flow here
-// - [x] improvement 1
-// - [ ] improvement 2
 pub fn write(
     folder: &str,
     polygons: &[Polygon],
