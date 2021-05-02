@@ -4,6 +4,8 @@ use std::path::Path;
 
 use crate::output::OverwriteConfiguration;
 
+use std::io::{Error, ErrorKind};
+
 pub struct FileCreator {
     pub overwrite_mode_config: OverwriteConfiguration,
 }
@@ -14,23 +16,18 @@ enum OverwriteOrSkip {
 }
 
 impl FileCreator {
-    pub fn create_file(&mut self, filename: &str) -> Option<File> {
+    pub fn create_file(&mut self, filename: &str) -> std::io::Result<File> {
         let file_exists = Path::new(&filename).exists();
         if file_exists {
             let overwrite_mode = &self.overwrite_handling(&filename);
             if let OverwriteOrSkip::Skip = overwrite_mode {
-                return None;
+                //Note: this is not nice since it returns an error in a normal user flow
+                //TODO: improve this if possible
+                return Err(Error::new(ErrorKind::AlreadyExists, "skipped"));
             }
         }
-        let file = File::create(filename);
-        match file {
-            Ok(f) => Some(f),
-            Err(e) => {
-                println!("encountered error when trying to create file {}", filename);
-                println!("error: {}", e);
-                None
-            }
-        }
+
+        File::create(filename)
     }
 
     fn overwrite_handling(&mut self, filename: &str) -> OverwriteOrSkip {

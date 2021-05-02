@@ -9,7 +9,6 @@ use std::fs::File;
 use std::collections::HashMap;
 use std::fs::create_dir_all;
 
-//TODO: should this be here?
 pub trait FileWriter {
     fn write_to_file(&self, file: &mut File, polygon: &Polygon) -> std::io::Result<()>;
 }
@@ -34,11 +33,11 @@ pub fn write(
 }
 
 fn new_output_hanlder(file_creator: FileCreator, write_geojson: bool) -> OutputHandler {
-    return OutputHandler {
+    OutputHandler {
         file_creator,
         write_poly: true,
-        write_geojson: write_geojson,
-    };
+        write_geojson,
+    }
 }
 
 struct OutputHandler {
@@ -81,25 +80,21 @@ impl OutputHandler {
         file_writer: &impl FileWriter,
     ) -> bool {
         let filename = format!("{}.{}", filename_wo_ext, ext);
-        println!("{}", filename);
 
-        let file_creation = self.file_creator.create_file(&filename);
-
-        //TODO: try to make this flow nicer
-        if file_creation.is_none() {
-            return false;
-        }
-
-        let mut file = file_creation.unwrap();
-
-        let result = file_writer.write_to_file(&mut file, polygon);
+        let result = self
+            .file_creator
+            .create_file(&filename)
+            .and_then(|mut file| file_writer.write_to_file(&mut file, polygon));
 
         match result {
             Err(e) => {
-                println!("error while writing {}: {}", filename, e);
+                println!("{}: {}", filename, e);
                 false
             }
-            Ok(_) => true,
+            Ok(_) => {
+                println!("{}: successfully written ", filename);
+                true
+            }
         }
     }
 }
