@@ -9,61 +9,80 @@ use std::fs::File;
 use std::collections::HashMap;
 use std::fs::create_dir_all;
 
+//TODO: should this be here?
 pub trait FileWriter {
     fn write_to_file(&self, file: &mut File, polygon: &Polygon) -> std::io::Result<()>;
 }
 
+//TODO: I don't like the flow here
+// - [x] improvement 1
+// - [ ] improvement 2
 pub fn write(
     folder: &str,
     polygons: &[Polygon],
     overwrite_configuration: OverwriteConfiguration,
-) -> std::io::Result<usize> {
-    let _create_result = create_dir_all(folder);
+) -> std::io::Result<u64> {
+    let _create_result = create_dir_all(folder)?;
 
-    let filename_polys = create_filenames(polygons);
+    let filename_polys = pair_safe_filenames_and_polygons(polygons);
 
-    let mut output_handler = OutputHandler {
-        file_creator: FileCreator {
+    let mut output_handler = new_output_hanlder(
+        FileCreator {
             overwrite_mode_config: overwrite_configuration,
         },
+        true,
+    );
+
+    output_handler.write_files(folder, filename_polys)
+}
+
+fn new_output_hanlder(file_creator: FileCreator, write_geojson: bool) -> OutputHandler {
+    return OutputHandler {
+        file_creator,
+        write_poly: true,
+        write_geojson: write_geojson,
     };
-
-    let mut file_count: usize = 0;
-
-    let write_poly = true;
-    let write_geojson = false;
-
-    let poly_writer = PolyWriter{};
-    let geojson_writer = GeoJsonWriter{};
-
-    for (name, polygon) in filename_polys {
-        //TODO: handle this nicer as well
-        let filename_wo_ext = format!("{}/{}", folder, name);
-
-        if write_poly {
-            let success_poly = output_handler.write_file(&filename_wo_ext, "poly", polygon, &poly_writer);
-            if success_poly {
-                file_count += 1;
-            }
-        }
-
-        if write_geojson {
-            let success_geojson = output_handler.write_file(&filename_wo_ext, "geojson", polygon, &geojson_writer);
-            if success_geojson {
-                file_count += 1;
-            }
-        }
-    }
-
-    Ok(file_count)
 }
 
 struct OutputHandler {
     file_creator: FileCreator,
+    write_poly: bool,
+    write_geojson: bool,
 }
 
 impl OutputHandler {
-    pub fn write_file(&mut self, filename_wo_ext: &str, ext: &str, polygon: &Polygon, file_writer: &impl FileWriter) -> bool {
+    pub fn write_files(&mut self, base_folder: &str, filename_polys: Vec<(String, &Polygon)>) -> std::io::Result<u64> {
+        let mut file_count: u64 = 0;
+
+        let poly_writer = PolyWriter {};
+        let geojson_writer = GeoJsonWriter {};
+
+        for (name, polygon) in filename_polys {
+            let filename_wo_ext = format!("{}/{}", base_folder, name);
+            if self.write_poly {
+                let success_poly = self.write_file(&filename_wo_ext, "poly", polygon, &poly_writer);
+                if success_poly {
+                    file_count += 1;
+                }
+            }
+            if self.write_geojson {
+                let success_geojson = self.write_file(&filename_wo_ext, "geojson", polygon, &geojson_writer);
+                if success_geojson {
+                    file_count += 1;
+                }
+            }
+        }
+
+        Ok(file_count)
+    }
+
+    pub fn write_file(
+        &mut self,
+        filename_wo_ext: &str,
+        ext: &str,
+        polygon: &Polygon,
+        file_writer: &impl FileWriter,
+    ) -> bool {
         let filename = format!("{}.{}", filename_wo_ext, ext);
         println!("{}", filename);
 
@@ -88,7 +107,7 @@ impl OutputHandler {
     }
 }
 
-fn create_filenames(polygons: &[Polygon]) -> Vec<(String, &Polygon)> {
+fn pair_safe_filenames_and_polygons(polygons: &[Polygon]) -> Vec<(String, &Polygon)> {
     let safe_names: Vec<String> = polygons.iter().map(|p| make_safe(&p.name)).collect();
 
     let mut duplicate_count: HashMap<String, usize> = count_duplicate_names(&safe_names);
@@ -233,7 +252,7 @@ mod tests {
 
         let input = [p1, p2, p3, p4];
 
-        let result = create_filenames(&input);
+        let result = pair_safe_filenames_and_polygons(&input);
 
         let result_names: Vec<String> = result.iter().map(|(x, _y)| x).cloned().collect();
 
@@ -265,7 +284,7 @@ mod tests {
 
         let input = [p1, p2, p3];
 
-        let result = create_filenames(&input);
+        let result = pair_safe_filenames_and_polygons(&input);
 
         let result_names: Vec<String> = result.iter().map(|(x, _y)| x).cloned().collect();
 
@@ -291,7 +310,7 @@ mod tests {
 
         let input = [p1, p2];
 
-        let result = create_filenames(&input);
+        let result = pair_safe_filenames_and_polygons(&input);
 
         let result_names: Vec<String> = result.iter().map(|(x, _y)| x).cloned().collect();
 
