@@ -1,7 +1,8 @@
 use crate::converter::Polygon;
-use crate::output::file_creator::{FileCreator, OverwriteConfiguration};
-use crate::output::writer_poly;
+use crate::output::file_creator::FileCreator;
 use crate::output::writer_geojson;
+use crate::output::writer_poly;
+use crate::output::OverwriteConfiguration;
 
 use std::collections::HashMap;
 use std::fs::create_dir_all;
@@ -15,22 +16,53 @@ pub fn write(
 
     let filename_polys = create_filenames(polygons);
 
-    let mut file_creation_handler = FileCreator {
-        overwrite_mode_config: overwrite_configuration,
+    let mut output_handler = OutputHandler {
+        file_creator: FileCreator {
+            overwrite_mode_config: overwrite_configuration,
+        },
     };
 
     let mut file_count: usize = 0;
 
+    let write_poly = true;
+    let write_geojson = false;
+
     for (name, polygon) in filename_polys {
         //TODO: handle this nicer as well
-        let filename = format!("{}/{}.poly", folder, name);
+        let filename_wo_ext = format!("{}/{}", folder, name);
+
+        if write_poly {
+            let success_poly = output_handler.write_file(&filename_wo_ext, "poly", polygon);
+            if success_poly {
+                file_count += 1;
+            }
+        }
+
+        if write_geojson {
+            let success_geojson = output_handler.write_file(&filename_wo_ext, "geojson", polygon);
+            if success_geojson {
+                file_count += 1;
+            }
+        }
+    }
+
+    Ok(file_count)
+}
+
+struct OutputHandler {
+    file_creator: FileCreator,
+}
+
+impl OutputHandler {
+    pub fn write_file(&mut self, filename_wo_ext: &str, ext: &str, polygon: &Polygon) -> bool {
+        let filename = format!("{}.{}", filename_wo_ext, ext);
         println!("{}", filename);
 
-        let file_creation = file_creation_handler.create_file(&filename);
+        let file_creation = self.file_creator.create_file(&filename);
 
         //TODO: try to make this flow nicer
         if file_creation.is_none() {
-            continue;
+            return false;
         }
 
         let mut file = file_creation.unwrap();
@@ -38,12 +70,13 @@ pub fn write(
         let result = writer_poly::write(&mut file, polygon);
 
         match result {
-            Err(e) => println!("error while writing {}: {}", filename, e),
-            Ok(_) => file_count += 1,
+            Err(e) => {
+                println!("error while writing {}: {}", filename, e);
+                false
+            }
+            Ok(_) => true,
         }
     }
-
-    Ok(file_count)
 }
 
 fn create_filenames(polygons: &[Polygon]) -> Vec<(String, &Polygon)> {

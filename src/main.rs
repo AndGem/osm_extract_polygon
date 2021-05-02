@@ -1,13 +1,12 @@
 extern crate osmpbfreader;
 
+use crate::output::OverwriteConfiguration;
 use clap::{crate_authors, crate_version, App, AppSettings, Arg};
-use crate::output::file_creator::OverwriteConfiguration;
 
 mod converter;
 mod osm_reader;
-mod utils;
 mod output;
-
+mod utils;
 
 fn main() {
     const INPUT_ARG: &str = "INPUT";
@@ -107,7 +106,7 @@ fn main() {
     let relations = osm_reader::read_osm(in_filename, &min_admin_level, &max_admin_level);
     let polygons = converter::convert(relations);
     let path = format!("{}_polygons", in_filename);
-    let result = output::writer::write(&path, &polygons, conflict_mode);
+    let result = output::output_handler::write(&path, &polygons, conflict_mode);
 
     match result {
         Ok(size) => println!("success! wrote {} files!", size),

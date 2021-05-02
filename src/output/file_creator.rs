@@ -2,12 +2,7 @@ use std::fs::File;
 use std::io::{self};
 use std::path::Path;
 
-
-pub enum OverwriteConfiguration {
-    Ask,
-    OverwriteAll,
-    SkipAll,
-}
+use crate::output::OverwriteConfiguration;
 
 pub struct FileCreator {
     pub overwrite_mode_config: OverwriteConfiguration,
