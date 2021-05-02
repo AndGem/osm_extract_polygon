@@ -1,11 +1,17 @@
 use crate::converter::Polygon;
 use crate::output::file_creator::FileCreator;
-use crate::output::writer_geojson;
-use crate::output::writer_poly;
+use crate::output::file_writer_geojson::GeoJsonWriter;
+use crate::output::file_writer_poly::PolyWriter;
 use crate::output::OverwriteConfiguration;
+
+use std::fs::File;
 
 use std::collections::HashMap;
 use std::fs::create_dir_all;
+
+pub trait FileWriter {
+    fn write_to_file(&self, file: &mut File, polygon: &Polygon) -> std::io::Result<()>;
+}
 
 pub fn write(
     folder: &str,
@@ -27,19 +33,22 @@ pub fn write(
     let write_poly = true;
     let write_geojson = false;
 
+    let poly_writer = PolyWriter{};
+    let geojson_writer = GeoJsonWriter{};
+
     for (name, polygon) in filename_polys {
         //TODO: handle this nicer as well
         let filename_wo_ext = format!("{}/{}", folder, name);
 
         if write_poly {
-            let success_poly = output_handler.write_file(&filename_wo_ext, "poly", polygon);
+            let success_poly = output_handler.write_file(&filename_wo_ext, "poly", polygon, &poly_writer);
             if success_poly {
                 file_count += 1;
             }
         }
 
         if write_geojson {
-            let success_geojson = output_handler.write_file(&filename_wo_ext, "geojson", polygon);
+            let success_geojson = output_handler.write_file(&filename_wo_ext, "geojson", polygon, &geojson_writer);
             if success_geojson {
                 file_count += 1;
             }
@@ -54,7 +63,7 @@ struct OutputHandler {
 }
 
 impl OutputHandler {
-    pub fn write_file(&mut self, filename_wo_ext: &str, ext: &str, polygon: &Polygon) -> bool {
+    pub fn write_file(&mut self, filename_wo_ext: &str, ext: &str, polygon: &Polygon, file_writer: &impl FileWriter) -> bool {
         let filename = format!("{}.{}", filename_wo_ext, ext);
         println!("{}", filename);
 
@@ -67,7 +76,7 @@ impl OutputHandler {
 
         let mut file = file_creation.unwrap();
 
-        let result = writer_poly::write(&mut file, polygon);
+        let result = file_writer.write_to_file(&mut file, polygon);
 
         match result {
             Err(e) => {
