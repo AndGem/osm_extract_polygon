@@ -3,8 +3,7 @@ use crate::converter::Polygon;
 use std::fs::File;
 use std::io::prelude::*;
 
-
-pub fn write(file: &mut File, polygon: &Polygon) -> std::io::Result<usize> {
+pub fn write(file: &mut File, polygon: &Polygon) -> std::io::Result<()> {
     file.write_all(&polygon.name.as_bytes())?;
     file.write_all(b"\n")?;
 
@@ -20,5 +19,5 @@ pub fn write(file: &mut File, polygon: &Polygon) -> std::io::Result<usize> {
     }
     file.write_all(b"END\n")?;
 
-    Ok(0)
+    Ok(())
 }

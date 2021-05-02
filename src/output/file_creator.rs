@@ -1,11 +1,7 @@
+use std::fs::File;
 use std::io::{self};
 use std::path::Path;
-use std::fs::File;
 
-enum OverwriteOrSkip {
-    Overwrite,
-    Skip,
-}
 
 pub enum OverwriteConfiguration {
     Ask,
@@ -17,26 +13,27 @@ pub struct FileCreator {
     pub overwrite_mode_config: OverwriteConfiguration,
 }
 
-impl FileCreator {
+enum OverwriteOrSkip {
+    Overwrite,
+    Skip,
+}
 
+impl FileCreator {
     pub fn create_file(&mut self, filename: &str) -> Option<File> {
-        let file_exists = Path::new(&filename).exists();    
-     
+        let file_exists = Path::new(&filename).exists();
         if file_exists {
             let overwrite_mode = &self.overwrite_handling(&filename);
-            match overwrite_mode {
-                OverwriteOrSkip::Skip => return None,
-                _ => {}
+            if let OverwriteOrSkip::Skip = overwrite_mode {
+                return None;
             }
         }
-    
         let file = File::create(filename);
         match file {
-            Ok(f) => return Some(f),
+            Ok(f) => Some(f),
             Err(e) => {
                 println!("encountered error when trying to create file {}", filename);
                 println!("error: {}", e);
-                return None;
+                None
             }
         }
     }

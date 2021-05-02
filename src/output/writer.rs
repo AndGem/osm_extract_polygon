@@ -1,6 +1,7 @@
 use crate::converter::Polygon;
-use crate::file_creation_handler::{FileCreator, OverwriteConfiguration};
-use crate::poly_writer;
+use crate::output::file_creator::{FileCreator, OverwriteConfiguration};
+use crate::output::writer_poly;
+use crate::output::writer_geojson;
 
 use std::collections::HashMap;
 use std::fs::create_dir_all;
@@ -34,7 +35,7 @@ pub fn write(
 
         let mut file = file_creation.unwrap();
 
-        let result = poly_writer::write(&mut file, polygon);
+        let result = writer_poly::write(&mut file, polygon);
 
         match result {
             Err(e) => println!("error while writing {}: {}", filename, e),

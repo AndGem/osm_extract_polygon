@@ -1,14 +1,12 @@
 extern crate osmpbfreader;
 
 use clap::{crate_authors, crate_version, App, AppSettings, Arg};
-use file_creation_handler::OverwriteConfiguration;
+use crate::output::file_creator::OverwriteConfiguration;
 
 mod converter;
 mod osm_reader;
-mod poly_writer;
 mod utils;
-mod file_creation_handler;
-mod writer;
+mod output;
 
 
 fn main() {
@@ -90,7 +88,7 @@ fn main() {
     let overwrite_all = matches.is_present(OVERWRITE_ARG);
     let skip_all = matches.is_present(SKIP_ARG);
 
-    if overwrite_all == true && skip_all == true {
+    if overwrite_all && skip_all {
         println!("error: cannot set both -o (--overwrite) and -s (--skip)!");
         std::process::exit(-1);
     }
@@ -109,7 +107,7 @@ fn main() {
     let relations = osm_reader::read_osm(in_filename, &min_admin_level, &max_admin_level);
     let polygons = converter::convert(relations);
     let path = format!("{}_polygons", in_filename);
-    let result = writer::write(&path, &polygons, conflict_mode);
+    let result = output::writer::write(&path, &polygons, conflict_mode);
 
     match result {
         Ok(size) => println!("success! wrote {} files!", size),
