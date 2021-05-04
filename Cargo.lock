@@ -192,6 +192,7 @@ dependencies = [
  "geojson",
  "osmpbfreader",
  "protobuf-codegen-pure",
+ "serde_json",
 ]
 
 [[package]]

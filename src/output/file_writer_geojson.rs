@@ -3,9 +3,13 @@ use crate::output::output_handler::FileWriter;
 
 use geo_types::Polygon as GeoPolygon;
 use geo_types::{Coordinate, LineString, MultiPolygon};
+use geojson::Geometry;
 
 use std::fs::File;
 use std::io::prelude::*;
+
+use serde_json::json;
+use serde_json::map::Map;
 
 pub struct GeoJsonWriter {}
 
@@ -14,12 +18,17 @@ impl FileWriter for GeoJsonWriter {
         let vec_polygons = convert_polygon_to_geo_polygons(polygon);
         let multipolygon = MultiPolygon(vec_polygons);
 
-        //TODO: need to add this to a Geometry
-        //TODO: add name
+        //TODO: add admin level for boundaries
+        let mut foreign_members = Map::new();
+        foreign_members.insert("name".to_string(), json!(polygon.name));
 
-        let json = geojson::Value::from(&multipolygon);
+        let geometry = Geometry {
+            bbox: None,
+            value: geojson::Value::from(&multipolygon),
+            foreign_members: Some(foreign_members),
+        };
 
-        file.write_all(json.to_string().as_bytes())?;
+        file.write_all(geometry.to_string().as_bytes())?;
 
         Ok(())
     }
