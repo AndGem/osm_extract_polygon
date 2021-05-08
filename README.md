@@ -3,12 +3,13 @@
 [![codecov](https://codecov.io/gh/AndGem/osm_extract_polygon/branch/master/graph/badge.svg)](https://codecov.io/gh/AndGem/osm_extract_polygon)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-
 This small and simple tool processes OSM pbf files to generate boundary polygons.
 
 The main question it answers is: How do I extract the polygon of an administrative boundary?
 
 In particular it looks for administrative boundaries (e.g., city boundaries, country boundaries, ...) and creates an output file per boundary that is in the [Osmosis Polygon format](https://wiki.openstreetmap.org/wiki/Osmosis/Polygon_Filter_File_Format).
+
+Since version `0.3.0` it also supports the [GeoJSON](https://geojson.org/) output format.
 
 ## Download
 
@@ -17,7 +18,7 @@ Just head over to the [Releases](https://github.com/AndGem/osm_extract_polygon/r
 ## Usage
 
 ```sh
-OSM Extract Polygon 0.2.1
+OSM Extract Polygon 0.3.0
 Andreas <andreas.gemsa@googlemail.com>
 Extracts administrative boundaries of OSM pbf files and produces polygon files compatible with Osmosis.
 
@@ -25,6 +26,7 @@ USAGE:
     osm_extract_polygon [FLAGS] [OPTIONS] --file <filename>
 
 FLAGS:
+    -g, --geojson      set this flag to generate geojson output
     -o, --overwrite    set this flag to overwrite files without asking; if neither this nor --skip is set the user is
                        being prompted should a file be overwritten.
     -s, --skip         set this flag to skip overwriting files; if neither this nor --overwrite is set the user is being
