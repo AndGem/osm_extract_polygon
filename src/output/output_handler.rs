@@ -5,6 +5,7 @@ use crate::output::file_writer_poly::PolyWriter;
 use crate::output::OverwriteConfiguration;
 
 use std::fs::File;
+use std::time::Instant;
 
 use std::collections::HashMap;
 use std::fs::create_dir_all;
@@ -51,6 +52,9 @@ impl OutputHandler {
         let poly_writer = PolyWriter {};
         let geojson_writer = GeoJsonWriter {};
 
+        let now = Instant::now();
+        println!("writing output files...");
+
         for (name, polygon) in filename_polys {
             let filename_wo_ext = format!("{}/{}", base_folder, name);
             if self.write_poly {
@@ -66,6 +70,8 @@ impl OutputHandler {
                 }
             }
         }
+
+        println!("finished writing! {}s", now.elapsed().as_secs());
 
         Ok(file_count)
     }
