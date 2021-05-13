@@ -7,21 +7,31 @@ use geojson::{Feature, Geometry};
 
 use std::fs::File;
 use std::io::prelude::*;
+use std::io::{Error, ErrorKind};
 
-use serde_json::{Map, to_value};
+use serde_json::{to_value, Map};
 
 pub struct GeoJsonWriter {}
 
 impl FileWriter for GeoJsonWriter {
     fn write_to_file(&self, file: &mut File, polygon: &Polygon) -> std::io::Result<()> {
         let vec_polygons = convert_polygon_to_geo_polygons(polygon);
-        let multipolygon = MultiPolygon(vec_polygons);
+
+        let geometry = match vec_polygons.len() {
+            0 => {
+                println!(
+                    "Error in converting Polygon to GeoJSON: {}. Doesn't contain points",
+                    polygon.name
+                );
+                return Err(Error::new(ErrorKind::Other, "Error in converting Polygon to GeoJSON."));
+            }
+            1 => Geometry::new(geojson::Value::from(vec_polygons.get(0).unwrap())),
+            _ => Geometry::new(geojson::Value::from(&MultiPolygon(vec_polygons))),
+        };
 
         //TODO: add admin level for boundaries
         let mut properties = Map::new();
         properties.insert(String::from("name"), to_value(&polygon.name).unwrap());
-
-        let geometry = Geometry::new(geojson::Value::from(&multipolygon));
 
         let geojson = Feature {
             bbox: None,
