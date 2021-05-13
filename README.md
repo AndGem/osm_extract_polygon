@@ -96,7 +96,7 @@ Example GeoJSON file in the output:
         ]
       ]
     ],
-    "type": "MultiPolygon"
+    "type": "Polygon"
   },
   "properties": {
     "name": "Blankenfelde-Mahlow"
