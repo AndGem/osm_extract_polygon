@@ -7,6 +7,7 @@ pub struct Polygon {
     pub points: Vec<Vec<Point>>,
 }
 
+#[derive(Clone)]
 pub struct Point {
     pub lat: f32,
     pub lon: f32,
