@@ -9,7 +9,7 @@ The main question it answers is: How do I extract the polygon of an administrati
 
 In particular it looks for administrative boundaries (e.g., city boundaries, country boundaries, ...) and creates an output file per boundary that is in the [Osmosis Polygon format](https://wiki.openstreetmap.org/wiki/Osmosis/Polygon_Filter_File_Format).
 
-Since version `0.3.0` it also supports the [GeoJSON](https://geojson.org/) output format.
+Since version `0.3.0` it also supports the [GeoJson](https://geojson.org/) output format.
 
 ## Download
 
@@ -26,7 +26,7 @@ USAGE:
     osm_extract_polygon [FLAGS] [OPTIONS] --file <filename>
 
 FLAGS:
-    -g, --geojson      set this flag to generate geojson output
+    -g, --geojson      set this flag to generate GeoJson output
     -o, --overwrite    set this flag to overwrite files without asking; if neither this nor --skip is set the user is
                        being prompted should a file be overwritten.
     -s, --skip         set this flag to skip overwriting files; if neither this nor --overwrite is set the user is being
@@ -40,7 +40,7 @@ OPTIONS:
     -m, --min <min_admin_level>    minimum administrative level (can take value from 1-11) [default: 8]
 ```
 
-### Example
+### Example 1 - Simple use case
 
 ```sh
 osm_extract_polygon -f karlsruhe-regbez-latest.osm.pbf
@@ -53,6 +53,57 @@ The name of the file is the name of the administrative boundary relation, potent
 Should more than one administrative boundary result in the same name, then, to avoid overwriting files, the filenames will have postfixes `_1, _2, ...`. The ordering of these values is arbitrary.
 
 For more information about the meaning of the minimum and maximum administrative level take a look into the [OSM Wiki](https://wiki.openstreetmap.org/wiki/Tag:boundary%3Dadministrative).
+
+### Example 2 - GeoJson Output
+
+In the next example we will create, additionally to the `*.poly` output, also matching GeoJSON files. We do this by passing the command line parameter `--geojson` (or alternatively, the short form `-g`) to the program.
+
+```sh
+./osm_extract_polygon -f berlin-latest.osm.pbf --geojson -o
+```
+
+This should create additional GeoJson files in the subfolder `berlin-latest.osm.pbf_polygons/`. Note, that we have also passed the parameter `-o` which instructs the program to overwrite already existing files in this folder without asking.
+
+Example GeoJson file in the output:
+
+```json
+{
+  "geometry": {
+    "coordinates": [
+      [
+        [
+          [
+            13.441906929016113,
+            52.3632698059082
+          ],
+          [
+            13.440044403076172,
+            52.363494873046875
+          ],
+          [
+            13.437420845031738,
+            52.36367416381836
+          ],
+          [
+            13.437135696411133,
+            52.36361312866211
+          ],
+          [
+            13.436691284179688,
+            52.36356735229492
+          ],
+          ...
+        ]
+      ]
+    ],
+    "type": "Polygon"
+  },
+  "properties": {
+    "name": "Blankenfelde-Mahlow"
+  },
+  "type": "Feature"
+}
+```
 
 ## Use Case: Extracting a smaller OSM file of a city
 
