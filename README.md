@@ -26,7 +26,7 @@ USAGE:
     osm_extract_polygon [FLAGS] [OPTIONS] --file <filename>
 
 FLAGS:
-    -g, --geojson      set this flag to generate geojson output
+    -g, --geojson      set this flag to generate GeoJson output
     -o, --overwrite    set this flag to overwrite files without asking; if neither this nor --skip is set the user is
                        being prompted should a file be overwritten.
     -s, --skip         set this flag to skip overwriting files; if neither this nor --overwrite is set the user is being
@@ -62,9 +62,9 @@ In the next example we will create, additionally to the `*.poly` output, also ma
 ./osm_extract_polygon -f berlin-latest.osm.pbf --geojson -o
 ```
 
-This should create additional GeoJSON files in the subfolder `berlin-latest.osm.pbf_polygons/`. Note, that we have also passed the parameter `-o` which instructs the program to overwrite already existing files in this folder without asking.
+This should create additional GeoJson files in the subfolder `berlin-latest.osm.pbf_polygons/`. Note, that we have also passed the parameter `-o` which instructs the program to overwrite already existing files in this folder without asking.
 
-Example GeoJSON file in the output:
+Example GeoJson file in the output:
 
 ```json
 {
