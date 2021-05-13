@@ -28,19 +28,15 @@ fn convert_polygon_to_geojson_feature(polygon: &Polygon) -> Result<Feature, ()> 
     let properties = create_properties(polygon);
     let polygons = convert_polygon_to_geo_polygons(polygon);
 
-    convert_to_geometry(polygons).and_then(|p| convert_to_feature(p, properties))
-}
-
-fn convert_to_feature(geometry: Geometry, properties: Map<String, serde_json::Value>) -> Result<Feature, ()> {
-    let feature = Feature {
-        bbox: None,
-        geometry: Some(geometry),
-        id: None,
-        properties: Some(properties),
-        foreign_members: None,
-    };
-
-    Ok(feature)
+    convert_to_geometry(polygons).and_then(|geometry| {
+        Ok(Feature {
+            bbox: None,
+            geometry: Some(geometry),
+            id: None,
+            properties: Some(properties),
+            foreign_members: None,
+        })
+    })
 }
 
 fn create_properties(polygon: &Polygon) -> Map<String, serde_json::Value> {
@@ -81,8 +77,8 @@ fn convert_to_linestring(points: &[Point]) -> LineString<f32> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::matches;
     use geojson::Value;
+    use std::matches;
 
     #[test]
     fn test_convert_single_polygon_to_geo_polygons() {
@@ -181,18 +177,15 @@ mod tests {
         ];
         let result = convert_to_geometry(geo_polys);
 
-        assert_eq!(result.is_ok(), true);
+        assert!(result.is_ok());
         assert!(matches!(result.unwrap().value, Value::MultiPolygon(_)));
     }
-    
-    
 
     #[test]
     fn test_convert_to_geometry_for_single_polygon_should_return_polygon() {
         let p1 = Point { lat: 1.0, lon: 1.0 };
         let p2 = Point { lat: 2.0, lon: 10.0 };
         let p3 = Point { lat: 3.0, lon: 100.0 };
-        
         let expected_line_str = LineString(vec![
             Coordinate { x: p1.lon, y: p1.lat },
             Coordinate { x: p1.lon, y: p2.lat },
@@ -203,7 +196,26 @@ mod tests {
 
         let result = convert_to_geometry(vec![geo_poly]);
 
-        assert_eq!(result.is_ok(), true);
+        assert!(result.is_ok());
         assert!(matches!(result.unwrap().value, Value::Polygon(_)));
+    }
+
+    #[test]
+    fn test_convert_to_geometry_for_empty_input_should_return_err() {
+        let result = convert_to_geometry(vec![]);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_create_properties_contains_name_of_polygon() {
+        let poly_name = "barfoo";
+        let single_polygon = Polygon {
+            name: poly_name.to_string(),
+            points: vec![vec![]],
+        };
+        let result = create_properties(&single_polygon);
+
+        assert!(result.contains_key("name"));
+        assert_eq!(result.get("name").unwrap(), poly_name);
     }
 }
