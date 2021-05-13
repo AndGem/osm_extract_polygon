@@ -9,7 +9,7 @@ The main question it answers is: How do I extract the polygon of an administrati
 
 In particular it looks for administrative boundaries (e.g., city boundaries, country boundaries, ...) and creates an output file per boundary that is in the [Osmosis Polygon format](https://wiki.openstreetmap.org/wiki/Osmosis/Polygon_Filter_File_Format).
 
-Since version `0.3.0` it also supports the [GeoJSON](https://geojson.org/) output format.
+Since version `0.3.0` it also supports the [GeoJson](https://geojson.org/) output format.
 
 ## Download
 
