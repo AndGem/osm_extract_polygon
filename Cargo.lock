@@ -185,7 +185,7 @@ dependencies = [
 
 [[package]]
 name = "osm_extract_polygon"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "clap",
  "geo-types",
