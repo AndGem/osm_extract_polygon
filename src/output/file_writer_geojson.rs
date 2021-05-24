@@ -28,14 +28,12 @@ fn convert_polygon_to_geojson_feature(polygon: &Polygon) -> Result<Feature, ()> 
     let properties = create_properties(polygon);
     let polygons = convert_polygon_to_geo_polygons(polygon);
 
-    convert_to_geometry(polygons).and_then(|geometry| {
-        Ok(Feature {
-            bbox: None,
-            geometry: Some(geometry),
-            id: None,
-            properties: Some(properties),
-            foreign_members: None,
-        })
+    convert_to_geometry(polygons).map(|geometry| Feature {
+        bbox: None,
+        geometry: Some(geometry),
+        id: None,
+        properties: Some(properties),
+        foreign_members: None,
     })
 }
 
