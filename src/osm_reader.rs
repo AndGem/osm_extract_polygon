@@ -91,9 +91,9 @@ fn find_admin_boundary_relations(
         .par_iter()
         .map(Result::unwrap)
         .filter(|obj| obj.is_relation())
+        .filter(|obj| obj.relation().unwrap().tags.contains("boundary", "administrative"))
+        .filter(|obj| has_proper_admin_level(obj.relation().unwrap(), min_admin, max_admin))
         .map(|obj| obj.relation().unwrap().clone())
-        .filter(|relation| relation.tags.contains("boundary", "administrative"))
-        .filter(|relation| has_proper_admin_level(relation, min_admin, max_admin))
         .map(|relation| (relation.id, relation))
         .collect();
 
@@ -119,8 +119,8 @@ fn find_nodes_for_way_ids(pbf: &mut OsmPbfReaderFile, way_ids: HashSet<WayId>) -
         .par_iter()
         .map(Result::unwrap)
         .filter(|obj| obj.is_way())
+        .filter(|obj| way_ids.contains(&obj.way().unwrap().id))
         .map(|obj| obj.way().unwrap().clone())
-        .filter(|way| way_ids.contains(&way.id))
         .map(|way| (way.id, way.nodes))
         .collect();
 
@@ -137,8 +137,8 @@ fn find_nodes_for_node_ids(pbf: &mut OsmPbfReaderFile, node_ids: HashSet<NodeId>
         .par_iter()
         .map(Result::unwrap)
         .filter(|obj| obj.is_node())
+        .filter(|obj| node_ids.contains(&obj.node().unwrap().id))
         .map(|obj| obj.node().unwrap().clone())
-        .filter(|node| node_ids.contains(&node.id))
         .map(|node| (node.id, node))
         .collect();
 
