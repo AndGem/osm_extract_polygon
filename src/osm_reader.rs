@@ -4,8 +4,6 @@ use std::collections::{HashMap, HashSet};
 use std::i8::MAX;
 use std::time::Instant;
 
-use rayon::prelude::*;
-
 use crate::utils::hashmap_values_to_set;
 
 type OsmPbfReaderFile = osmpbfreader::OsmPbfReader<std::fs::File>;
@@ -33,7 +31,7 @@ fn read_ways_and_relation(file_reference: std::fs::File, min_admin: &i8, max_adm
         find_nodes_for_node_ids(&mut pbf, hashmap_values_to_set(&way_id_to_node_ids));
 
     let relation_to_nodes: Vec<RelationNodes> = relation_id_to_ways
-        .par_iter()
+        .iter()
         .map(|(r_id, way_ids)| (*r_id, replace_way_id_with_node_ids(&way_ids, &way_id_to_node_ids)))
         .map(|(r_id, node_ids)| (r_id, replace_node_id_with_node(node_ids, &node_id_to_node)))
         .map(|(r_id, node_ids)| (relation_id_to_relation.get(&r_id).unwrap().clone(), node_ids))
@@ -62,7 +60,7 @@ fn replace_way_id_with_node_ids(
     way_id_to_node_ids: &HashMap<WayId, Vec<NodeId>>,
 ) -> Vec<Vec<NodeId>> {
     way_ids
-        .par_iter()
+        .iter()
         .filter_map(|way_id| way_id_to_node_ids.get(&way_id))
         .cloned()
         .collect()
@@ -70,10 +68,10 @@ fn replace_way_id_with_node_ids(
 
 fn replace_node_id_with_node(v_node_ids: Vec<Vec<NodeId>>, node_id_to_node: &HashMap<NodeId, Node>) -> Vec<Vec<Node>> {
     v_node_ids
-        .par_iter()
+        .iter()
         .map(|node_ids| {
             node_ids
-                .par_iter()
+                .iter()
                 .filter_map(|node_id| node_id_to_node.get(&node_id))
                 .cloned()
                 .collect()
@@ -93,6 +91,7 @@ fn find_admin_boundary_relations(
         .par_iter()
         .map(Result::unwrap)
         .filter(|obj| obj.is_relation())
+        // .map(|obj| obj.relation().unwrap().clone())
         .filter(|obj| obj.relation().unwrap().tags.contains("boundary", "administrative"))
         .filter(|obj| has_proper_admin_level(obj.relation().unwrap(), min_admin, max_admin))
         .map(|obj| obj.relation().unwrap().clone())
@@ -107,7 +106,7 @@ fn find_ways_for_relation_ids(
     relation_id_to_relation: &HashMap<RelationId, Relation>,
 ) -> HashMap<RelationId, Vec<WayId>> {
     relation_id_to_relation
-        .par_iter()
+        .iter()
         .map(|(relation_id, relation)| (*relation_id, extract_way_ids_from_relation(relation)))
         .collect()
 }
@@ -121,6 +120,7 @@ fn find_nodes_for_way_ids(pbf: &mut OsmPbfReaderFile, way_ids: HashSet<WayId>) -
         .par_iter()
         .map(Result::unwrap)
         .filter(|obj| obj.is_way())
+        // .map(|obj| obj.way().unwrap().clone())
         .filter(|obj| way_ids.contains(&obj.way().unwrap().id))
         .map(|obj| obj.way().unwrap().clone())
         .map(|way| (way.id, way.nodes))
@@ -139,6 +139,7 @@ fn find_nodes_for_node_ids(pbf: &mut OsmPbfReaderFile, node_ids: HashSet<NodeId>
         .par_iter()
         .map(Result::unwrap)
         .filter(|obj| obj.is_node())
+        // .map(|obj| obj.node().unwrap().clone())
         .filter(|obj| node_ids.contains(&obj.node().unwrap().id))
         .map(|obj| obj.node().unwrap().clone())
         .map(|node| (node.id, node))
