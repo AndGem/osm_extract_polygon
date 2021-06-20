@@ -11,6 +11,7 @@ geojson = { version =  "0.22.0", features=["geo-types"] }
 geo-types = "0.7.0"
 osmpbfreader = "0.13.4"
 serde_json = "1.0"
+rayon = "1.5"
 
 [build-dependencies]
 protobuf-codegen-pure = "2"
