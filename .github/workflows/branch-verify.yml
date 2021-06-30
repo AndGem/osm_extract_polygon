@@ -22,6 +22,13 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+    - name: Run MD5 check
+      run: |
+        target/debug/osm_extract_polygon -f data/suriname-latest.osm.pbf -g
+        md5sum data/suriname-latest.osm.pbf_polygons/Papaichton.geojson | cut -c1-32 | awk '$1!="174f26805ecca1d0271773a8a9aba067" {err = 1; exit; } END {exit err}'
+        md5sum data/suriname-latest.osm.pbf_polygons/Papaichton.poly | cut -c1-32 | awk '$1!="f017f2ca29051e1c9dea687a11f6175e" {err = 1; exit; } END {exit err}'
+        md5sum data/suriname-latest.osm.pbf_polygons/Maripasoula.geojson | cut -c1-32 | awk '$1!="2b2be0d389bd9cc23a5120c690a06027" {err = 1; exit; } END {exit err}'
+        md5sum data/suriname-latest.osm.pbf_polygons/Maripasoula.poly | cut -c1-32 | awk '$1!="d7608f4bd631237a092b9a5777091340" {err = 1; exit; } END {exit err}'
     - name: Push to codecov.io
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -14,6 +14,7 @@
 /target
 #**/*.rs.bk
 
-*pbf*
-
+*pbf
+*polygons/
+!data/*
 .vscode/
