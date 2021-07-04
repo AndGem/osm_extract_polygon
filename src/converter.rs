@@ -131,8 +131,8 @@ fn convert_nodes_to_points(nodes: &[Node]) -> Vec<Point> {
     nodes
         .iter()
         .map(|node| Point {
-            lat: ((node.decimicro_lat as f64) / 10_000_000.0) as f32,
-            lon: ((node.decimicro_lon as f64) / 10_000_000.0) as f32,
+            lat: ((node.decimicro_lat as f32) / 10_000_000.0) as f32,
+            lon: ((node.decimicro_lon as f32) / 10_000_000.0) as f32,
         })
         .collect()
 }
