@@ -32,7 +32,7 @@ fn read_ways_and_relation(file_reference: std::fs::File, min_admin: &i8, max_adm
 
     let relation_to_nodes: Vec<RelationNodes> = relation_id_to_ways
         .iter()
-        .map(|(r_id, way_ids)| (*r_id, replace_way_id_with_node_ids(&way_ids, &way_id_to_node_ids)))
+        .map(|(r_id, way_ids)| (*r_id, replace_way_id_with_node_ids(way_ids, &way_id_to_node_ids)))
         .map(|(r_id, node_ids)| (r_id, replace_node_id_with_node(node_ids, &node_id_to_node)))
         .map(|(r_id, node_ids)| (relation_id_to_relation.get(&r_id).unwrap().clone(), node_ids))
         .map(|(relation, nodes)| RelationNodes { relation, nodes })
@@ -61,7 +61,7 @@ fn replace_way_id_with_node_ids(
 ) -> Vec<Vec<NodeId>> {
     way_ids
         .iter()
-        .filter_map(|way_id| way_id_to_node_ids.get(&way_id))
+        .filter_map(|way_id| way_id_to_node_ids.get(way_id))
         .cloned()
         .collect()
 }
@@ -72,7 +72,7 @@ fn replace_node_id_with_node(v_node_ids: Vec<Vec<NodeId>>, node_id_to_node: &Has
         .map(|node_ids| {
             node_ids
                 .iter()
-                .filter_map(|node_id| node_id_to_node.get(&node_id))
+                .filter_map(|node_id| node_id_to_node.get(node_id))
                 .cloned()
                 .collect()
         })

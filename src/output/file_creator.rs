@@ -19,7 +19,7 @@ impl FileCreator {
     pub fn create_file(&mut self, filename: &str) -> std::io::Result<File> {
         let file_exists = Path::new(&filename).exists();
         if file_exists {
-            let overwrite_mode = &self.overwrite_handling(&filename);
+            let overwrite_mode = &self.overwrite_handling(filename);
             if let OverwriteOrSkip::Skip = overwrite_mode {
                 //Note: this is not nice since it returns an error in a normal user flow
                 //TODO: improve this if possible
