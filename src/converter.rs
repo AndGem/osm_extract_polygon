@@ -109,14 +109,24 @@ fn find_match(node_id: NodeId, nodes: &mut Vec<Vec<Node>>) -> Option<Vec<Node>> 
 fn convert_to_poly(rn: RelationNodes) -> Polygon {
     let points = rn.nodes.iter().map(|x| convert_nodes_to_points(x)).collect();
 
-    let name: String = rn
+    let unknown_name = String::from("UNKNOWN_NAME");
+    let empty_string = String::from("");
+
+    let name = rn
         .relation
         .tags
         .get("name")
-        .unwrap_or(&"UNKNOWN_NAME".to_string())
+        .map(|x| x.to_string())
+        .unwrap_or(unknown_name)
         .clone();
 
-    let name_prefix = rn.relation.tags.get("name:prefix").unwrap_or(&"".to_string()).clone();
+    let name_prefix = rn
+        .relation
+        .tags
+        .get("name:prefix")
+        .map(|x| x.to_string())
+        .unwrap_or(empty_string)
+        .clone();
 
     let fullname = if rn.relation.tags.contains_key("name:prefix") {
         format!("{}_{}", name_prefix, name)

@@ -1,8 +1,11 @@
-use osmpbfreader::{Node, NodeId, OsmPbfReader, Relation, RelationId, WayId};
+use osmpbfreader::{Node, NodeId, OsmPbfReader, Relation, RelationId, WayId, Tags};
 
 use std::collections::{HashMap, HashSet};
 use std::i8::MAX;
 use std::time::Instant;
+use std::iter::FromIterator;
+
+use smartstring::alias::String;
 
 use crate::utils::hashmap_values_to_set;
 
@@ -165,21 +168,21 @@ mod tests {
     #[test]
     fn test_admin_level_too_high_is_not_valid() {
         let max_admin_level = 8;
-        let relation = create_relation(vec![("admin_level".to_string(), (max_admin_level + 1).to_string())]);
+        let relation = create_relation(vec![(String::from("admin_level"), String::from((max_admin_level + 1).to_string()))]);
         assert_eq!(has_proper_admin_level(&relation, &1, &max_admin_level), false);
     }
 
     #[test]
     fn test_admin_level_is_max_level_is_valid() {
         let max_admin_level = 8;
-        let relation = create_relation(vec![("admin_level".to_string(), (max_admin_level).to_string())]);
+        let relation = create_relation(vec![(String::from("admin_level"), String::from((max_admin_level).to_string()))]);
         assert_eq!(has_proper_admin_level(&relation, &1, &max_admin_level), true);
     }
 
     #[test]
     fn test_min_admin_level_filters_out() {
         let min_admin_level = 1;
-        let relation = create_relation(vec![("admin_level".to_string(), "0".to_string())]);
+        let relation = create_relation(vec![(String::from("admin_level"), String::from((0).to_string()))]);
         assert_eq!(has_proper_admin_level(&relation, &min_admin_level, &8), false);
     }
 
@@ -188,9 +191,9 @@ mod tests {
         let min_admin_level = 3;
         let max_admin_level = min_admin_level;
 
-        let relation_too_little = create_relation(vec![("admin_level".to_string(), (min_admin_level - 1).to_string())]);
-        let relation_exact = create_relation(vec![("admin_level".to_string(), min_admin_level.to_string())]);
-        let relation_too_big = create_relation(vec![("admin_level".to_string(), (max_admin_level + 1).to_string())]);
+        let relation_too_little = create_relation(vec![(String::from("admin_level"), String::from((min_admin_level - 1).to_string()))]);
+        let relation_exact = create_relation(vec![(String::from("admin_level"), String::from((min_admin_level).to_string()))]);
+        let relation_too_big = create_relation(vec![(String::from("admin_level"), String::from((min_admin_level + 1).to_string()))]);
 
         assert_eq!(
             has_proper_admin_level(&relation_too_little, &min_admin_level, &max_admin_level),
@@ -209,7 +212,7 @@ mod tests {
     fn create_relation(tags_pairs: Vec<(String, String)>) -> Relation {
         Relation {
             id: RelationId(123),
-            tags: tags_pairs.into_iter().collect(),
+            tags: Tags::from_iter(tags_pairs),
             refs: Vec::new(),
         }
     }
