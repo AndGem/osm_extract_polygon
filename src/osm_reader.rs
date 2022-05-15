@@ -1,11 +1,8 @@
-use osmpbfreader::{Node, NodeId, OsmPbfReader, Relation, RelationId, WayId, Tags};
+use osmpbfreader::{Node, NodeId, OsmPbfReader, Relation, RelationId, WayId};
 
 use std::collections::{HashMap, HashSet};
 use std::i8::MAX;
 use std::time::Instant;
-use std::iter::FromIterator;
-
-use smartstring::alias::String;
 
 use crate::utils::hashmap_values_to_set;
 
@@ -100,7 +97,7 @@ fn find_admin_boundary_relations(
         .map(|relation| (relation.id, relation))
         .collect();
 
-    println!("parsing relations finished! {}s", now.elapsed().as_secs());
+    println!("finished parsing {} relations! {}s", relation_id_to_relation.len(), now.elapsed().as_secs());
     relation_id_to_relation
 }
 
@@ -158,6 +155,10 @@ fn find_nodes_for_node_ids(pbf: &mut OsmPbfReaderFile, node_ids: HashSet<NodeId>
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::iter::FromIterator;
+    use osmpbfreader::Tags;
+
+    use smartstring::alias::String;
 
     #[test]
     fn test_empty_relation_has_not_proper_admin_level() {
