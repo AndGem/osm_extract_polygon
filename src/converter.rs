@@ -117,16 +117,14 @@ fn convert_to_poly(rn: RelationNodes) -> Polygon {
         .tags
         .get("name")
         .map(|x| x.to_string())
-        .unwrap_or(unknown_name)
-        .clone();
+        .unwrap_or(unknown_name);
 
     let name_prefix = rn
         .relation
         .tags
         .get("name:prefix")
         .map(|x| x.to_string())
-        .unwrap_or(empty_string)
-        .clone();
+        .unwrap_or(empty_string);
 
     let fullname = if rn.relation.tags.contains_key("name:prefix") {
         format!("{}_{}", name_prefix, name)
