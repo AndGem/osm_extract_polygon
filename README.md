@@ -24,7 +24,7 @@ USAGE:
     osm_extract_polygon [FLAGS] [OPTIONS] --file <filename>
 
 FLAGS:
-    -g, --geojson      set this flag to generate GeoJson output
+    -g, --geojson      set this flag to generate geojson output
     -o, --overwrite    set this flag to overwrite files without asking; if neither this nor --skip is set the user is
                        being prompted should a file be overwritten.
     -s, --skip         set this flag to skip overwriting files; if neither this nor --overwrite is set the user is being
@@ -36,6 +36,7 @@ OPTIONS:
     -f, --file <filename>          input file
     -x, --max <max_admin_level>    max administrative level (can take value from 1-11) [default: 8]
     -m, --min <min_admin_level>    minimum administrative level (can take value from 1-11) [default: 8]
+    -p, --path <path>              path to which the output will be saved to [default: '<input_filename>_polygons/']
 ```
 
 ### Example 1 - Simple use case
