@@ -11,6 +11,7 @@ mod utils;
 
 fn main() {
     const INPUT_ARG: &str = "INPUT";
+    const OUTPUT_FOLDER: &str = "OUTPUT";
     const MIN_ADMIN_LEVEL_ARG: &str = "MIN_ADMIN_LEVEL";
     const MAX_ADMIN_LEVEL_ARG: &str = "MAX_ADMIN_LEVEL";
     const OVERWRITE_ARG: &str = "OVERWRITE";
@@ -48,6 +49,15 @@ fn main() {
                 .long("max")
                 .value_name("max_admin_level")
                 .help("max administrative level (can take value from 1-11) [default: 8]")
+                .required(false)
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name(OUTPUT_FOLDER)
+                .short("p")
+                .long("path")
+                .value_name("path")
+                .help("path to which the output will be saved to [default: '<input_filename>_polygons/']")
                 .required(false)
                 .takes_value(true),
         )
@@ -118,10 +128,12 @@ fn main() {
 
     let in_filename = matches.value_of(INPUT_ARG).unwrap();
     println!("Using input file: {}", in_filename);
+    let default_path = format!("{}_polygons/", in_filename);
+    let path = matches.value_of(OUTPUT_FOLDER).unwrap_or(&default_path);
+    println!("Output path: {}", path);
 
     let relations = osm_reader::read_osm(in_filename, &min_admin_level, &max_admin_level);
     let polygons = converter::convert(relations);
-    let path = format!("{}_polygons", in_filename);
     let result = output::output_handler::write(&path, &polygons, output_handler_config);
 
     match result {
