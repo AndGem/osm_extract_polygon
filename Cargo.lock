@@ -249,7 +249,7 @@ dependencies = [
  "osmpbfreader",
  "protobuf-codegen-pure",
  "serde_json",
- "smartstring 1.0.1",
+ "smartstring",
 ]
 
 [[package]]
@@ -267,7 +267,7 @@ dependencies = [
  "pub-iterator-type",
  "self_cell",
  "serde",
- "smartstring 0.2.10",
+ "smartstring",
 ]
 
 [[package]]
@@ -493,21 +493,9 @@ version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e714dff2b33f2321fdcd475b71cec79781a692d846f37f415fb395a1d2bcd48e"
 dependencies = [
- "serde",
- "static_assertions",
-]
-
-[[package]]
-name = "smartstring"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fb72c633efbaa2dd666986505016c32c3044395ceaf881518399d2f4127ee29"
-dependencies = [
- "autocfg",
  "proptest",
  "serde",
  "static_assertions",
- "version_check",
 ]
 
 [[package]]
@@ -593,12 +581,6 @@ name = "vec_map"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1bddf1187be692e79c5ffeab891132dfb0f236ed36a43c7ed39f1165ee20191"
-
-[[package]]
-name = "version_check"
-version = "0.9.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 
 [[package]]
 name = "wait-timeout"
