@@ -24,7 +24,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Build project
-        run: cargo build --release --locked
+        run: cargo build --release
       - name: prepare release
         run: |
           strip target/release/${{ matrix.artifact_name }}
