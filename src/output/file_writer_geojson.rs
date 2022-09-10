@@ -87,6 +87,7 @@ mod tests {
         let single_polygon = Polygon {
             name: "barfoo".to_string(),
             points: vec![vec![p1.clone(), p2.clone(), p3.clone()]],
+            relation_id: 1,
         };
 
         let result = convert_polygon_to_geo_polygons(&single_polygon);
@@ -121,6 +122,7 @@ mod tests {
                 vec![p21.clone(), p22.clone(), p23.clone()],
                 vec![p31.clone(), p32.clone(), p33.clone()],
             ],
+            relation_id: 1,
         };
 
         let result = convert_polygon_to_geo_polygons(&poly);
@@ -210,6 +212,7 @@ mod tests {
         let single_polygon = Polygon {
             name: poly_name.to_string(),
             points: vec![vec![]],
+            relation_id: 1,
         };
         let result = create_properties(&single_polygon);
 

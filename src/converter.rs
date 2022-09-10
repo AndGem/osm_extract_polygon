@@ -5,6 +5,7 @@ use crate::osm_reader::RelationNodes;
 pub struct Polygon {
     pub name: String,
     pub points: Vec<Vec<Point>>,
+    pub relation_id: i64,
 }
 
 #[derive(Clone)]
@@ -112,6 +113,8 @@ fn convert_to_poly(rn: RelationNodes) -> Polygon {
     let unknown_name = String::from("UNKNOWN_NAME");
     let empty_string = String::from("");
 
+    let relation_id: i64 = rn.relation.id.0;
+
     let name = rn
         .relation
         .tags
@@ -132,7 +135,11 @@ fn convert_to_poly(rn: RelationNodes) -> Polygon {
         name
     };
 
-    Polygon { name: fullname, points }
+    Polygon {
+        name: fullname,
+        points,
+        relation_id,
+    }
 }
 
 fn convert_nodes_to_points(nodes: &[Node]) -> Vec<Point> {
