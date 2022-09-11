@@ -49,7 +49,7 @@ The program will create a folder `<INPUT_PBF_FILE>_polygons/` in the same folder
 This folder contains for each administrative boundary it found and extract a `.poly` file.
 The name of the file is the name of the administrative boundary relation, potentially prefixed by a prefix defined in the relation under the tag `name:prefix`.
 
-Should more than one administrative boundary result in the same name, then, to avoid overwriting files, the filenames will have postfixes `_1, _2, ...`. The ordering of these values is arbitrary.
+Should more than one administrative boundary result in the same name, then, to avoid overwriting files, the filenames will have postfixes that corresponds to the relation id the administrative boundary is based on. For example, it the result for data of Spain can result in the following three files: `Vimianzo_12532173.poly`, `Vimianzo_348941.poly`, `Vimianzo_9482766.poly`. For these `12532173`, `348941`, and `9482766` are the relation ids mentioned above.
 
 For more information about the meaning of the minimum and maximum administrative level take a look into the [OSM Wiki](https://wiki.openstreetmap.org/wiki/Tag:boundary%3Dadministrative).
 
