@@ -20,7 +20,7 @@ pub struct OutputHandlerConfiguration {
 }
 
 pub fn write(folder: &str, polygons: &[Polygon], config: OutputHandlerConfiguration) -> std::io::Result<u64> {
-    let _create_result = create_dir_all(folder)?;
+    create_dir_all(folder)?;
 
     let filename_polys = pair_safe_filenames_and_polygons(polygons);
 
