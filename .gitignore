@@ -16,5 +16,5 @@
 
 *pbf
 *polygons/
-!data/*
+data/*
 .vscode/
