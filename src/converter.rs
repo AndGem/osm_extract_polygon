@@ -6,6 +6,8 @@ pub struct Polygon {
     pub name: String,
     pub points: Vec<Vec<Point>>,
     pub relation_id: i64,
+    pub admin_level: i64,
+    pub place: String,
 }
 
 #[derive(Clone)]
@@ -112,8 +114,12 @@ fn convert_to_poly(rn: RelationNodes) -> Polygon {
 
     let unknown_name = String::from("UNKNOWN_NAME");
     let empty_string = String::from("");
+    let unknown_place = String::from("UNKNOWN_PLACE");
+
 
     let relation_id: i64 = rn.relation.id.0;
+
+    println!("{:?}",rn.relation);
 
     let name = rn
         .relation
@@ -129,6 +135,21 @@ fn convert_to_poly(rn: RelationNodes) -> Polygon {
         .map(|x| x.to_string())
         .unwrap_or(empty_string);
 
+        let admin_level = rn
+        .relation
+        .tags
+        .get("admin_level")
+        .unwrap()
+        .parse()
+        .unwrap_or(0);
+
+        let place = rn
+        .relation
+        .tags
+        .get("place")
+        .map(|x| x.to_string())
+        .unwrap_or(unknown_place);
+
     let fullname = if rn.relation.tags.contains_key("name:prefix") {
         format!("{}_{}", name_prefix, name)
     } else {
@@ -139,6 +160,8 @@ fn convert_to_poly(rn: RelationNodes) -> Polygon {
         name: fullname,
         points,
         relation_id,
+        admin_level,
+        place,
     }
 }
 

@@ -56,7 +56,7 @@ impl OutputHandler {
         println!("writing output files...");
 
         for (name, polygon) in filename_polys {
-            let filename_wo_ext = format!("{}/{}", base_folder, name);
+            let filename_wo_ext = format!("{}/{}_{}", base_folder, polygon.relation_id, name);
             if self.write_poly {
                 let success_poly = self.write_file(&filename_wo_ext, "poly", polygon, &poly_writer);
                 if success_poly {

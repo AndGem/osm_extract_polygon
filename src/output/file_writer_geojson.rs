@@ -41,7 +41,8 @@ fn create_properties(polygon: &Polygon) -> Map<String, serde_json::Value> {
     //TODO: add admin level for boundaries
     let mut properties = Map::new();
     properties.insert(String::from("name"), to_value(&polygon.name).unwrap());
-
+    properties.insert(String::from("admin_level"), to_value(&polygon.admin_level).unwrap());
+    properties.insert(String::from("place"), to_value(&polygon.place).unwrap());
     properties
 }
 
