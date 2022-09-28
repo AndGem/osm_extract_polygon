@@ -116,8 +116,6 @@ fn convert_to_poly(rn: RelationNodes) -> Polygon {
 
     let relation_id: i64 = rn.relation.id.0;
 
-    println!("{:?}",rn.relation);
-
     let name = rn
         .relation
         .tags
