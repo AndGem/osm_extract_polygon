@@ -120,7 +120,7 @@ fn convert_to_poly(rn: RelationNodes) -> Polygon {
 
     let name = tags.get("name").map(|x| x.to_string()).unwrap_or(unknown_name);
     let name_prefix = tags.get("name:prefix").map(|x| x.to_string()).unwrap_or(empty_string);
-    let admin_level = tags.get("admin_level").unwrap().parse().unwrap_or(0);
+    let admin_level = tags.get("admin_level").map(|x| x.parse::<i64>()).unwrap().unwrap_or(0);
 
     let fullname = if tags.contains_key("name:prefix") {
         format!("{}_{}", name_prefix, name)
