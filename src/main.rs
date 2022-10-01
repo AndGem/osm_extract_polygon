@@ -18,6 +18,10 @@ fn main() {
     const SKIP_ARG: &str = "SKIP";
     const GEOJSON_ARG: &str = "GEOJSON";
 
+    // TODO: implement ability to skip features to filewriter
+    //const SKIP_ADMIN_LEVEL_PROPERTY: &str = "SKIP_ADMIN_LEVEL_PROPERTY";
+
+
     let matches = App::new("OSM Extract Polygon")
         .version(crate_version!())
         .author(crate_authors!())
@@ -82,6 +86,15 @@ fn main() {
             .takes_value(false)
             .help("set this flag to generate geojson output")
         )
+        /*
+        TODO: implement ability to skip features to filewriter
+        .arg(
+            Arg::with_name(SKIP_ADMIN_LEVEL_PROPERTY)
+            .long("skip-geojson-admin-level")
+            .takes_value(false)
+            .help("Skip setting the admin_level in the GeoJSON output as a property")
+        )
+        */
         .get_matches();
 
     let min_admin_level = matches

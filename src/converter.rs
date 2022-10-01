@@ -6,6 +6,7 @@ pub struct Polygon {
     pub name: String,
     pub points: Vec<Vec<Point>>,
     pub relation_id: i64,
+    pub admin_level: i64
 }
 
 #[derive(Clone)]
@@ -129,6 +130,15 @@ fn convert_to_poly(rn: RelationNodes) -> Polygon {
         .map(|x| x.to_string())
         .unwrap_or(empty_string);
 
+        let admin_level = rn
+        .relation
+        .tags
+        .get("admin_level")
+        .unwrap()
+        .parse()
+        .unwrap_or(0);
+
+
     let fullname = if rn.relation.tags.contains_key("name:prefix") {
         format!("{}_{}", name_prefix, name)
     } else {
@@ -139,6 +149,7 @@ fn convert_to_poly(rn: RelationNodes) -> Polygon {
         name: fullname,
         points,
         relation_id,
+        admin_level
     }
 }
 
