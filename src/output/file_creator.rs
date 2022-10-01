@@ -22,7 +22,6 @@ impl FileCreator {
             let overwrite_mode = &self.overwrite_handling(filename);
             if let OverwriteOrSkip::Skip = overwrite_mode {
                 //Note: this is not nice since it returns an error in a normal user flow
-                //TODO: improve this if possible
                 return Err(Error::new(ErrorKind::AlreadyExists, "skipped"));
             }
         }

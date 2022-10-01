@@ -187,24 +187,28 @@ mod tests {
             name: p1_name,
             points: Vec::new(),
             relation_id: 100,
+            admin_level: 1,
         };
 
         let p2 = Polygon {
             name: p2_name,
             points: Vec::new(),
             relation_id: 200,
+            admin_level: 1,
         };
 
         let p3 = Polygon {
             name: p1_name_clone,
             points: Vec::new(),
             relation_id: 300,
+            admin_level: 1,
         };
 
         let p4 = Polygon {
             name: p1_name_clone2,
             points: Vec::new(),
             relation_id: 400,
+            admin_level: 1,
         };
 
         let input = [p1, p2, p3, p4];
@@ -228,18 +232,21 @@ mod tests {
             name: p1_name,
             points: Vec::new(),
             relation_id: 1,
+            admin_level: 1,
         };
 
         let p2 = Polygon {
             name: p2_name,
             points: Vec::new(),
             relation_id: 2,
+            admin_level: 1,
         };
 
         let p3 = Polygon {
             name: p3_name,
             points: Vec::new(),
             relation_id: 3,
+            admin_level: 1,
         };
 
         let input = [p1, p2, p3];
@@ -262,12 +269,14 @@ mod tests {
             name: p1_name,
             points: Vec::new(),
             relation_id: 123,
+            admin_level: 1,
         };
 
         let p2 = Polygon {
             name: p2_name,
             points: Vec::new(),
             relation_id: 456,
+            admin_level: 1,
         };
 
         let input = [p1, p2];

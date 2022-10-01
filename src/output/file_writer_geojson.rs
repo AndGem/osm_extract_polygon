@@ -87,6 +87,7 @@ mod tests {
             name: "barfoo".to_string(),
             points: vec![vec![p1.clone(), p2.clone(), p3.clone()]],
             relation_id: 1,
+            admin_level: 1
         };
 
         let result = convert_polygon_to_geo_polygons(&single_polygon);
@@ -122,6 +123,7 @@ mod tests {
                 vec![p31.clone(), p32.clone(), p33.clone()],
             ],
             relation_id: 1,
+            admin_level: 1
         };
 
         let result = convert_polygon_to_geo_polygons(&poly);
@@ -212,10 +214,26 @@ mod tests {
             name: poly_name.to_string(),
             points: vec![vec![]],
             relation_id: 1,
+            admin_level: 1
         };
         let result = create_properties(&single_polygon);
 
         assert!(result.contains_key("name"));
         assert_eq!(result.get("name").unwrap(), poly_name);
+    }
+
+    #[test]
+    fn test_create_properties_contains_admin_level_of_polygon() {
+        let poly_name = "barfoo";
+        let single_polygon = Polygon {
+            name: poly_name.to_string(),
+            points: vec![vec![]],
+            relation_id: 1,
+            admin_level: 27
+        };
+        let result = create_properties(&single_polygon);
+
+        assert!(result.contains_key("admin_level"));
+        assert_eq!(result.get("admin_level").unwrap(), 27);
     }
 }
