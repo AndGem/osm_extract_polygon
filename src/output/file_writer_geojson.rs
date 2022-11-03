@@ -40,7 +40,7 @@ fn convert_polygon_to_geojson_feature(polygon: &Polygon) -> Result<Feature, ()> 
 fn create_properties(polygon: &Polygon) -> Map<String, serde_json::Value> {
     let mut properties = Map::new();
     properties.insert(String::from("name"), to_value(&polygon.name).unwrap());
-    properties.insert(String::from("admin_level"), to_value(&polygon.admin_level).unwrap());
+    properties.insert(String::from("admin_level"), to_value(polygon.admin_level).unwrap());
     properties
 }
 
@@ -87,7 +87,7 @@ mod tests {
             name: "barfoo".to_string(),
             points: vec![vec![p1.clone(), p2.clone(), p3.clone()]],
             relation_id: 1,
-            admin_level: 1
+            admin_level: 1,
         };
 
         let result = convert_polygon_to_geo_polygons(&single_polygon);
@@ -123,7 +123,7 @@ mod tests {
                 vec![p31.clone(), p32.clone(), p33.clone()],
             ],
             relation_id: 1,
-            admin_level: 1
+            admin_level: 1,
         };
 
         let result = convert_polygon_to_geo_polygons(&poly);
@@ -214,7 +214,7 @@ mod tests {
             name: poly_name.to_string(),
             points: vec![vec![]],
             relation_id: 1,
-            admin_level: 1
+            admin_level: 1,
         };
         let result = create_properties(&single_polygon);
 
@@ -229,7 +229,7 @@ mod tests {
             name: poly_name.to_string(),
             points: vec![vec![]],
             relation_id: 1,
-            admin_level: 27
+            admin_level: 27,
         };
         let result = create_properties(&single_polygon);
 

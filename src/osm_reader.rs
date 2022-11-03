@@ -15,7 +15,7 @@ pub struct RelationNodes {
 }
 
 pub fn read_osm(filename: &str, min_admin: &i8, max_admin: &i8) -> Vec<RelationNodes> {
-    let file_reference = std::fs::File::open(&std::path::Path::new(filename)).unwrap();
+    let file_reference = std::fs::File::open(std::path::Path::new(filename)).unwrap();
     read_ways_and_relation(file_reference, min_admin, max_admin)
 }
 
