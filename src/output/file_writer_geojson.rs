@@ -2,7 +2,7 @@ use crate::converter::{Point, Polygon};
 use crate::output::output_handler::FileWriter;
 
 use geo_types::Polygon as GeoPolygon;
-use geo_types::{Coordinate, LineString, MultiPolygon};
+use geo_types::{Coord, LineString, MultiPolygon};
 use geojson::{Feature, Geometry};
 
 use std::fs::File;
@@ -62,7 +62,7 @@ fn convert_polygon_to_geo_polygons(polygon: &Polygon) -> Vec<GeoPolygon<f32>> {
 }
 
 fn convert_to_linestring(points: &[Point]) -> LineString<f32> {
-    LineString(points.iter().map(|p| Coordinate { x: p.lon, y: p.lat }).collect())
+    LineString(points.iter().map(|p| Coord { x: p.lon, y: p.lat }).collect())
 }
 
 // ////////////////////////////////////
@@ -92,9 +92,9 @@ mod tests {
 
         let result = convert_polygon_to_geo_polygons(&single_polygon);
         let expected_line_str = LineString(vec![
-            Coordinate { x: p1.lon, y: p1.lat },
-            Coordinate { x: p2.lon, y: p2.lat },
-            Coordinate { x: p3.lon, y: p3.lat },
+            Coord { x: p1.lon, y: p1.lat },
+            Coord { x: p2.lon, y: p2.lat },
+            Coord { x: p3.lon, y: p3.lat },
         ]);
         let expected = vec![GeoPolygon::new(expected_line_str, vec![])];
 
@@ -128,19 +128,19 @@ mod tests {
 
         let result = convert_polygon_to_geo_polygons(&poly);
         let expected_line_str1 = LineString(vec![
-            Coordinate { x: p11.lon, y: p11.lat },
-            Coordinate { x: p12.lon, y: p12.lat },
-            Coordinate { x: p13.lon, y: p13.lat },
+            Coord { x: p11.lon, y: p11.lat },
+            Coord { x: p12.lon, y: p12.lat },
+            Coord { x: p13.lon, y: p13.lat },
         ]);
         let expected_line_str2 = LineString(vec![
-            Coordinate { x: p21.lon, y: p21.lat },
-            Coordinate { x: p22.lon, y: p22.lat },
-            Coordinate { x: p23.lon, y: p23.lat },
+            Coord { x: p21.lon, y: p21.lat },
+            Coord { x: p22.lon, y: p22.lat },
+            Coord { x: p23.lon, y: p23.lat },
         ]);
         let expected_line_str3 = LineString(vec![
-            Coordinate { x: p31.lon, y: p31.lat },
-            Coordinate { x: p32.lon, y: p32.lat },
-            Coordinate { x: p33.lon, y: p33.lat },
+            Coord { x: p31.lon, y: p31.lat },
+            Coord { x: p32.lon, y: p32.lat },
+            Coord { x: p33.lon, y: p33.lat },
         ]);
         let expected = vec![
             GeoPolygon::new(expected_line_str1, vec![]),
@@ -162,14 +162,14 @@ mod tests {
         let p23 = Point { lat: 6.0, lon: 100.0 };
 
         let expected_line_str1 = LineString(vec![
-            Coordinate { x: p11.lon, y: p11.lat },
-            Coordinate { x: p12.lon, y: p12.lat },
-            Coordinate { x: p13.lon, y: p13.lat },
+            Coord { x: p11.lon, y: p11.lat },
+            Coord { x: p12.lon, y: p12.lat },
+            Coord { x: p13.lon, y: p13.lat },
         ]);
         let expected_line_str2 = LineString(vec![
-            Coordinate { x: p21.lon, y: p21.lat },
-            Coordinate { x: p22.lon, y: p22.lat },
-            Coordinate { x: p23.lon, y: p23.lat },
+            Coord { x: p21.lon, y: p21.lat },
+            Coord { x: p22.lon, y: p22.lat },
+            Coord { x: p23.lon, y: p23.lat },
         ]);
 
         let geo_polys = vec![
@@ -188,9 +188,9 @@ mod tests {
         let p2 = Point { lat: 2.0, lon: 10.0 };
         let p3 = Point { lat: 3.0, lon: 100.0 };
         let expected_line_str = LineString(vec![
-            Coordinate { x: p1.lon, y: p1.lat },
-            Coordinate { x: p1.lon, y: p2.lat },
-            Coordinate { x: p1.lon, y: p3.lat },
+            Coord { x: p1.lon, y: p1.lat },
+            Coord { x: p1.lon, y: p2.lat },
+            Coord { x: p1.lon, y: p3.lat },
         ]);
 
         let geo_poly = GeoPolygon::new(expected_line_str, vec![]);
