@@ -134,7 +134,7 @@ fn pair_safe_filenames_and_polygons(polygons: &[Polygon]) -> Vec<(String, &Polyg
 
 fn make_safe(name: &str) -> String {
     let mut s = String::from(name);
-    s.retain(|c| !r#"\\/&:<>|*"#.contains(c));
+    s.retain(|c| !r"\\/&:<>|*".contains(c));
     s
 }
 

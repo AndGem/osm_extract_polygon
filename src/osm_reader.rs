@@ -1,10 +1,12 @@
 use osmpbfreader::{Node, NodeId, OsmPbfReader, Relation, RelationId, WayId};
 
 use std::collections::{HashMap, HashSet};
+use std::fs::File;
 use std::i8::MAX;
+use std::path::Path;
 use std::time::Instant;
 
-use crate::utils::hashmap_values_to_set;
+use crate::utils::values_to_set;
 
 type OsmPbfReaderFile = osmpbfreader::OsmPbfReader<std::fs::File>;
 
@@ -14,31 +16,31 @@ pub struct RelationNodes {
     pub nodes: Vec<Vec<Node>>,
 }
 
-pub fn read_osm(filename: &str, min_admin: &i8, max_admin: &i8) -> Vec<RelationNodes> {
-    let file_reference = std::fs::File::open(std::path::Path::new(filename)).unwrap();
-    read_ways_and_relation(file_reference, min_admin, max_admin)
+pub fn read_osm(filename: &str, min_admin: &i8, max_admin: &i8) -> Result<Vec<RelationNodes>, std::io::Error> {
+    let file = File::open(Path::new(filename))?;
+    read_ways_and_relation(file, min_admin, max_admin)
 }
 
-fn read_ways_and_relation(file_reference: std::fs::File, min_admin: &i8, max_admin: &i8) -> Vec<RelationNodes> {
-    let mut pbf: OsmPbfReaderFile = OsmPbfReader::new(file_reference);
+fn read_ways_and_relation(file: File, min_admin: &i8, max_admin: &i8) -> Result<Vec<RelationNodes>, std::io::Error> {
+    let mut reader = OsmPbfReader::new(file);
 
-    let relation_id_to_relation = find_admin_boundary_relations(&mut pbf, min_admin, max_admin);
+    let relations = find_admin_boundary_relations(&mut reader, min_admin, max_admin);
 
-    let relation_id_to_ways: HashMap<RelationId, Vec<WayId>> = find_ways_for_relation_ids(&relation_id_to_relation);
-    let way_id_to_node_ids: HashMap<WayId, Vec<NodeId>> =
-        find_nodes_for_way_ids(&mut pbf, hashmap_values_to_set(&relation_id_to_ways));
-    let node_id_to_node: HashMap<NodeId, Node> =
-        find_nodes_for_node_ids(&mut pbf, hashmap_values_to_set(&way_id_to_node_ids));
+    let relation_to_ways = find_ways_for_relation_ids(&relations);
+    let way_to_nodes = find_nodes_for_way_ids(&mut reader, values_to_set(&relation_to_ways));
+    let node_map = find_nodes_for_node_ids(&mut reader, values_to_set(&way_to_nodes));
 
-    let relation_to_nodes: Vec<RelationNodes> = relation_id_to_ways
+    let relation_to_nodes = relation_to_ways
         .iter()
-        .map(|(r_id, way_ids)| (*r_id, replace_way_id_with_node_ids(way_ids, &way_id_to_node_ids)))
-        .map(|(r_id, node_ids)| (r_id, replace_node_id_with_node(node_ids, &node_id_to_node)))
-        .map(|(r_id, node_ids)| (relation_id_to_relation.get(&r_id).unwrap().clone(), node_ids))
-        .map(|(relation, nodes)| RelationNodes { relation, nodes })
+        .map(|(r_id, ways)| {
+            let nodes = replace_way_id_with_node_ids(ways, &way_to_nodes);
+            let nodes = replace_node_id_with_node(nodes, &node_map);
+            let relation = relations.get(r_id).expect("Relation not found").clone();
+            RelationNodes { relation, nodes }
+        })
         .collect();
 
-    relation_to_nodes
+    Ok(relation_to_nodes)
 }
 
 fn has_proper_admin_level(relation: &Relation, min_admin: &i8, max_admin: &i8) -> bool {

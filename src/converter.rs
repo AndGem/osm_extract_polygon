@@ -1,6 +1,7 @@
-use osmpbfreader::{Node, NodeId};
-
 use crate::osm_reader::RelationNodes;
+use osmpbfreader::Tags;
+use osmpbfreader::{Node, NodeId};
+use std::fmt;
 
 pub struct Polygon {
     pub name: String,
@@ -15,7 +16,6 @@ pub struct Point {
     pub lon: f32,
 }
 
-use std::fmt;
 impl fmt::Debug for Polygon {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "RelationNodes {{ name: {}, points: {:?} }}", self.name, self.points)
@@ -29,14 +29,10 @@ impl fmt::Debug for Point {
 }
 
 pub fn convert(relations: Vec<RelationNodes>) -> Vec<Polygon> {
-    relations
-        .iter()
-        .map(|rn| merge_nodes(rn.clone()))
-        .map(convert_to_poly)
-        .collect()
+    relations.iter().map(merge_nodes).map(convert_to_poly).collect()
 }
 
-fn merge_nodes(rn: RelationNodes) -> RelationNodes {
+fn merge_nodes(rn: &RelationNodes) -> RelationNodes {
     /*
         merging of nodes is necessary because ways are split into multiple groups
         assumption:
@@ -49,7 +45,7 @@ fn merge_nodes(rn: RelationNodes) -> RelationNodes {
          2. repeat process until nothing to merge
     */
 
-    let mut nodes = rn.nodes;
+    let mut nodes = rn.nodes.clone();
     let mut result_nodes: Vec<Vec<Node>> = Vec::new();
 
     while !nodes.is_empty() {
@@ -79,7 +75,7 @@ fn merge_nodes(rn: RelationNodes) -> RelationNodes {
     }
 
     RelationNodes {
-        relation: rn.relation,
+        relation: rn.relation.clone(),
         nodes: result_nodes,
     }
 }
@@ -108,25 +104,31 @@ fn find_match(node_id: NodeId, nodes: &mut Vec<Vec<Node>>) -> Option<Vec<Node>> 
     None
 }
 
-fn convert_to_poly(rn: RelationNodes) -> Polygon {
-    let points = rn.nodes.iter().map(|x| convert_nodes_to_points(x)).collect();
+fn get_full_name(tags: &Tags) -> String {
+    let name = tags
+        .get("name")
+        .map(|x| x.to_string())
+        .unwrap_or(String::from("UNKNOWN_NAME"));
 
-    let unknown_name = String::from("UNKNOWN_NAME");
-    let empty_string = String::from("");
+    let name_prefix = tags
+        .get("name:prefix")
+        .map(|x| x.to_string())
+        .unwrap_or(String::from(""));
 
-    let relation_id: i64 = rn.relation.id.0;
-
-    let tags = rn.relation.tags;
-
-    let name = tags.get("name").map(|x| x.to_string()).unwrap_or(unknown_name);
-    let name_prefix = tags.get("name:prefix").map(|x| x.to_string()).unwrap_or(empty_string);
-    let admin_level = tags.get("admin_level").map(|x| x.parse::<i64>()).unwrap().unwrap_or(0);
-
-    let fullname = if tags.contains_key("name:prefix") {
+    if !name_prefix.is_empty() {
         format!("{}_{}", name_prefix, name)
     } else {
-        name
-    };
+        name.to_string()
+    }
+}
+
+fn convert_to_poly(rn: RelationNodes) -> Polygon {
+    let points = rn.nodes.iter().map(|x| convert_nodes_to_points(x)).collect();
+    let relation_id: i64 = rn.relation.id.0;
+    let tags = &rn.relation.tags;
+
+    let fullname = get_full_name(tags);
+    let admin_level = tags.get("admin_level").and_then(|x| x.parse::<i64>().ok()).unwrap_or(0);
 
     Polygon {
         name: fullname,

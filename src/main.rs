@@ -133,7 +133,7 @@ fn main() {
     println!("Output path: {}", path);
 
     let relations = osm_reader::read_osm(in_filename, &min_admin_level, &max_admin_level);
-    let polygons = converter::convert(relations);
+    let polygons = converter::convert(relations.unwrap());
     let result = output::output_handler::write(path, &polygons, output_handler_config);
 
     match result {
