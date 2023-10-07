@@ -43,29 +43,6 @@ fn read_ways_and_relation(file: File, min_admin: &i8, max_admin: &i8) -> Result<
     Ok(relation_to_nodes)
 }
 
-// fn read_ways_and_relation(file_reference: std::fs::File, min_admin: &i8, max_admin: &i8) -> Vec<RelationNodes> {
-//     let mut pbf: OsmPbfReaderFile = OsmPbfReader::new(file_reference);
-
-//     let relation_id_to_relation = find_admin_boundary_relations(&mut pbf, min_admin, max_admin);
-
-//     let relation_id_to_ways: HashMap<RelationId, Vec<WayId>> = find_ways_for_relation_ids(&relation_id_to_relation);
-//     let way_id_to_node_ids: HashMap<WayId, Vec<NodeId>> =
-//         find_nodes_for_way_ids(&mut pbf, hashmap_values_to_set(&relation_id_to_ways));
-//     let node_id_to_node: HashMap<NodeId, Node> =
-//         find_nodes_for_node_ids(&mut pbf, hashmap_values_to_set(&way_id_to_node_ids));
-
-//     let relation_to_nodes: Vec<RelationNodes> = relation_id_to_ways
-//         .iter()
-//         .map(|(r_id, way_ids)| (*r_id, replace_way_id_with_node_ids(way_ids, &way_id_to_node_ids)))
-//         .map(|(r_id, node_ids)| (r_id, replace_node_id_with_node(node_ids, &node_id_to_node)))
-//         .map(|(r_id, node_ids)| (relation_id_to_relation.get(&r_id).unwrap().clone(), node_ids))
-//         .map(|(relation, nodes)| RelationNodes { relation, nodes })
-//         .collect();
-
-//     relation_to_nodes
-// }
-
-
 fn has_proper_admin_level(relation: &Relation, min_admin: &i8, max_admin: &i8) -> bool {
     let admin_level: i8 = relation
         .tags
