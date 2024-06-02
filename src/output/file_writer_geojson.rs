@@ -47,7 +47,7 @@ fn create_properties(polygon: &Polygon) -> Map<String, serde_json::Value> {
 fn convert_to_geometry(polygons: Vec<GeoPolygon<f32>>) -> Result<Geometry, ()> {
     match polygons.len() {
         0 => Err(()),
-        1 => Ok(Geometry::new(geojson::Value::from(polygons.get(0).unwrap()))),
+        1 => Ok(Geometry::new(geojson::Value::from(polygons.first().unwrap()))),
         _ => Ok(Geometry::new(geojson::Value::from(&MultiPolygon(polygons)))),
     }
 }
