@@ -27,7 +27,7 @@ fn main() {
         .setting(AppSettings::ArgRequiredElseHelp)
         .arg(
             Arg::with_name(INPUT_ARG)
-                .short("f")
+                .short('f')
                 .long("file")
                 .value_name("filename")
                 .help("input file")
@@ -36,7 +36,7 @@ fn main() {
         )
         .arg(
             Arg::with_name(MIN_ADMIN_LEVEL_ARG)
-                .short("m")
+                .short('m')
                 .long("min")
                 .value_name("min_admin_level")
                 .help("minimum administrative level (can take value from 1-11) [default: 8]")
@@ -45,7 +45,7 @@ fn main() {
         )
         .arg(
             Arg::with_name(MAX_ADMIN_LEVEL_ARG)
-                .short("x")
+                .short('x')
                 .long("max")
                 .value_name("max_admin_level")
                 .help("max administrative level (can take value from 1-11) [default: 8]")
@@ -54,7 +54,7 @@ fn main() {
         )
         .arg(
             Arg::with_name(OUTPUT_FOLDER)
-                .short("p")
+                .short('p')
                 .long("path")
                 .value_name("path")
                 .help("path to which the output will be saved to [default: '<input_filename>_polygons/']")
@@ -63,21 +63,21 @@ fn main() {
         )
         .arg(
             Arg::with_name(OVERWRITE_ARG)
-            .short("o")
+            .short('o')
             .long("overwrite")
             .takes_value(false)
             .help("set this flag to overwrite files without asking; if neither this nor --skip is set the user is being prompted should a file be overwritten.")
         )
         .arg(
             Arg::with_name(SKIP_ARG)
-            .short("s")
+            .short('s')
             .long("skip")
             .takes_value(false)
             .help("set this flag to skip overwriting files; if neither this nor --overwrite is set the user is being prompted should a file be overwritten.")
         )
         .arg(
             Arg::with_name(GEOJSON_ARG)
-            .short("g")
+            .short('g')
             .long("geojson")
             .takes_value(false)
             .help("set this flag to generate geojson output")
