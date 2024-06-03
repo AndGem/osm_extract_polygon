@@ -4,14 +4,13 @@ use crate::output::file_writer_geojson::GeoJsonWriter;
 use crate::output::file_writer_poly::PolyWriter;
 use crate::output::OverwriteConfiguration;
 
-use std::fs::File;
+use std::collections::HashSet;
+use std::fs::{create_dir_all, File};
+use std::io::Result;
 use std::time::Instant;
 
-use std::collections::HashSet;
-use std::fs::create_dir_all;
-
 pub trait FileWriter {
-    fn write_to_file(&self, file: &mut File, polygon: &Polygon) -> std::io::Result<()>;
+    fn write_to_file(&self, file: &mut File, polygon: &Polygon) -> Result<()>;
 }
 
 pub struct OutputHandlerConfiguration {
@@ -19,11 +18,10 @@ pub struct OutputHandlerConfiguration {
     pub geojson_output: bool,
 }
 
-pub fn write(folder: &str, polygons: &[Polygon], config: OutputHandlerConfiguration) -> std::io::Result<u64> {
+pub fn write(folder: &str, polygons: &[Polygon], config: OutputHandlerConfiguration) -> Result<u64> {
     create_dir_all(folder)?;
 
     let filename_polys = pair_safe_filenames_and_polygons(polygons);
-
     let mut output_handler = new_output_handler(config);
 
     output_handler.write_files(folder, filename_polys)
@@ -46,8 +44,8 @@ struct OutputHandler {
 }
 
 impl OutputHandler {
-    pub fn write_files(&mut self, base_folder: &str, filename_polys: Vec<(String, &Polygon)>) -> std::io::Result<u64> {
-        let mut file_count: u64 = 0;
+    pub fn write_files(&mut self, base_folder: &str, filename_polys: Vec<(String, &Polygon)>) -> Result<u64> {
+        let mut file_count = 0;
 
         let poly_writer = PolyWriter {};
         let geojson_writer = GeoJsonWriter {};
@@ -58,21 +56,18 @@ impl OutputHandler {
         for (name, polygon) in filename_polys {
             let filename_wo_ext = format!("{}/{}", base_folder, name);
             if self.write_poly {
-                let success_poly = self.write_file(&filename_wo_ext, "poly", polygon, &poly_writer);
-                if success_poly {
+                if self.write_file(&filename_wo_ext, "poly", polygon, &poly_writer) {
                     file_count += 1;
                 }
             }
             if self.write_geojson {
-                let success_geojson = self.write_file(&filename_wo_ext, "geojson", polygon, &geojson_writer);
-                if success_geojson {
+                if self.write_file(&filename_wo_ext, "geojson", polygon, &geojson_writer) {
                     file_count += 1;
                 }
             }
         }
 
         println!("finished writing! {}s", now.elapsed().as_secs());
-
         Ok(file_count)
     }
 
@@ -105,37 +100,32 @@ impl OutputHandler {
 
 fn pair_safe_filenames_and_polygons(polygons: &[Polygon]) -> Vec<(String, &Polygon)> {
     let safe_names: Vec<String> = polygons.iter().map(|p| make_safe(&p.name)).collect();
-
     let mut seen_names: HashSet<String> = HashSet::new();
     let mut duplicate_names: HashSet<String> = HashSet::new();
 
-    safe_names.iter().for_each(|name| {
-        if seen_names.contains(&name.to_lowercase()) {
-            duplicate_names.insert(name.to_string().to_lowercase());
-        } else {
-            seen_names.insert(name.to_string().to_lowercase());
+    for name in &safe_names {
+        let lower_name = name.to_lowercase();
+        if !seen_names.insert(lower_name.clone()) {
+            duplicate_names.insert(lower_name);
         }
-    });
+    }
 
-    safe_names
+    polygons
         .iter()
-        .zip(polygons.iter())
-        .map(|(name, p)| {
+        .zip(safe_names)
+        .map(|(p, name)| {
             let out_name = if duplicate_names.contains(&name.to_lowercase()) {
                 format!("{}_{}", name, p.relation_id)
             } else {
-                name.to_string()
+                name
             };
-
             (out_name, p)
         })
         .collect()
 }
 
 fn make_safe(name: &str) -> String {
-    let mut s = String::from(name);
-    s.retain(|c| !r"\\/&:<>|*".contains(c));
-    s
+    name.chars().filter(|c| !r"\\/&:<>|*".contains(*c)).collect()
 }
 
 // ////////////////////////////////////
