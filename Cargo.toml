@@ -6,7 +6,7 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-clap = { version = "3.2.18", features=["cargo"] }
+clap = { version = "4.5.4", features=["cargo"] }
 geojson = { version =  "0.24.1", features=["geo-types"] }
 geo-types = "0.7.13"
 osmpbfreader = "0.16.1"
