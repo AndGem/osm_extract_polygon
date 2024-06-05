@@ -24,7 +24,6 @@ fn main() {
         .about(
             "Extracts administrative boundaries of OSM pbf files and produces polygon files compatible with Osmosis.",
         )
-        // .setting(AppSettings::ArgRequiredElseHelp)
         .arg(
             Arg::new(INPUT_ARG)
                 .short('f')
@@ -104,8 +103,8 @@ fn main() {
         std::process::exit(-1);
     }
 
-    let overwrite_all = matches.contains_id(OVERWRITE_ARG);
-    let skip_all = matches.contains_id(SKIP_ARG);
+    let overwrite_all = matches.get_flag(OVERWRITE_ARG);
+    let skip_all = matches.get_flag(SKIP_ARG);
 
     if overwrite_all && skip_all {
         println!("error: cannot set both -o (--overwrite) and -s (--skip)!");
