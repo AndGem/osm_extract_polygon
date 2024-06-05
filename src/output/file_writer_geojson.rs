@@ -15,12 +15,9 @@ pub struct GeoJsonWriter {}
 
 impl FileWriter for GeoJsonWriter {
     fn write_to_file(&self, file: &mut File, polygon: &Polygon) -> std::io::Result<()> {
-        let feature = convert_polygon_to_geojson_feature(polygon);
-        if feature.is_ok() {
-            Ok(file.write_all(feature.unwrap().to_string().as_bytes())?)
-        } else {
-            Err(Error::new(ErrorKind::Other, "Error in converting Polygon to GeoJSON."))
-        }
+        let feature = convert_polygon_to_geojson_feature(polygon)
+            .map_err(|_| Error::new(ErrorKind::Other, "Error in converting Polygon to GeoJSON"))?;
+        file.write_all(feature.to_string().as_bytes())
     }
 }
 

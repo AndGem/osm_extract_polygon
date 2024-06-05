@@ -1,7 +1,6 @@
 use crate::converter::Polygon;
 use crate::output::output_handler::FileWriter;
 
-use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -13,17 +12,16 @@ impl FileWriter for PolyWriter {
         output.push_str(&polygon.name);
         output.push('\n');
 
-        let mut index: i32 = 1;
-
-        for points in &polygon.points {
-            let area_id_str = fmt::format(format_args!("area_{}\n", index));
+        for (index, points) in polygon.points.iter().enumerate() {
+            let area_id_str = format!("area_{}\n", index + 1);
             output.push_str(&area_id_str);
+
             for point in points {
-                let point_str = fmt::format(format_args!("\t{} \t{}\n", point.lon, point.lat));
+                let point_str = format!("\t{} \t{}\n", point.lon, point.lat);
                 output.push_str(&point_str);
             }
+            
             output.push_str("END\n");
-            index += 1;
         }
         output.push_str("END\n");
         file.write_all(output.as_bytes())?;

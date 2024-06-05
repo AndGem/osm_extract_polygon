@@ -17,22 +17,22 @@ enum OverwriteOrSkip {
 
 impl FileCreator {
     pub fn create_file(&mut self, filename: &str) -> std::io::Result<File> {
-        let file_exists = Path::new(&filename).exists();
-        if file_exists {
-            let overwrite_mode = &self.overwrite_handling(filename);
-            if let OverwriteOrSkip::Skip = overwrite_mode {
-                //Note: this is not nice since it returns an error in a normal user flow
-                return Err(Error::new(ErrorKind::AlreadyExists, "skipped"));
+        if Path::new(filename).exists() {
+            match self.overwrite_handling(filename)? {
+                OverwriteOrSkip::Skip => {
+                    return Err(Error::new(ErrorKind::AlreadyExists, "skipped"));
+                }
+                OverwriteOrSkip::Overwrite => {}
             }
         }
 
         File::create(filename)
     }
 
-    fn overwrite_handling(&mut self, filename: &str) -> OverwriteOrSkip {
-        match &self.overwrite_mode_config {
-            OverwriteConfiguration::OverwriteAll => return OverwriteOrSkip::Overwrite,
-            OverwriteConfiguration::SkipAll => return OverwriteOrSkip::Skip,
+    fn overwrite_handling(&mut self, filename: &str) -> io::Result<OverwriteOrSkip> {
+        match self.overwrite_mode_config {
+            OverwriteConfiguration::OverwriteAll => return Ok(OverwriteOrSkip::Overwrite),
+            OverwriteConfiguration::SkipAll => return Ok(OverwriteOrSkip::Skip),
             _ => {}
         }
 
@@ -42,19 +42,21 @@ impl FileCreator {
 
             io::stdin().read_line(&mut buffer).expect("Couldn't read line");
 
-            buffer = String::from(buffer.trim());
+            let input = buffer.trim();
 
-            if buffer.as_str() == "k" {
-                self.overwrite_mode_config = OverwriteConfiguration::SkipAll;
-            } else if buffer.as_str() == "a" {
-                self.overwrite_mode_config = OverwriteConfiguration::OverwriteAll;
-            }
-
-            match buffer.as_str() {
-                "s" | "k" => return OverwriteOrSkip::Skip,
-                "o" | "a" => return OverwriteOrSkip::Overwrite,
+            match input {
+                "s" => return Ok(OverwriteOrSkip::Skip),
+                "o" => return Ok(OverwriteOrSkip::Overwrite),
+                "k" => {
+                    self.overwrite_mode_config = OverwriteConfiguration::SkipAll;
+                    return Ok(OverwriteOrSkip::Skip);
+                }
+                "a" => {
+                    self.overwrite_mode_config = OverwriteConfiguration::OverwriteAll;
+                    return Ok(OverwriteOrSkip::Overwrite);
+                }
                 _ => {
-                    buffer = String::from("");
+                    buffer.clear();
                 }
             }
         }
