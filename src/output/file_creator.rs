@@ -56,7 +56,7 @@ impl FileCreator {
                     return Ok(OverwriteOrSkip::Overwrite);
                 }
                 _ => {
-                    buffer.clear(); // Clear the buffer to prepare for the next input
+                    buffer.clear();
                 }
             }
         }

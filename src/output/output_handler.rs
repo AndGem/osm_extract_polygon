@@ -55,15 +55,11 @@ impl OutputHandler {
 
         for (name, polygon) in filename_polys {
             let filename_wo_ext = format!("{}/{}", base_folder, name);
-            if self.write_poly {
-                if self.write_file(&filename_wo_ext, "poly", polygon, &poly_writer) {
-                    file_count += 1;
-                }
+            if self.write_poly && self.write_file(&filename_wo_ext, "poly", polygon, &poly_writer) {
+                file_count += 1;
             }
-            if self.write_geojson {
-                if self.write_file(&filename_wo_ext, "geojson", polygon, &geojson_writer) {
-                    file_count += 1;
-                }
+            if self.write_geojson && self.write_file(&filename_wo_ext, "geojson", polygon, &geojson_writer) {
+                file_count += 1;
             }
         }
 
