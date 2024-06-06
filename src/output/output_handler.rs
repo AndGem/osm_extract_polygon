@@ -7,6 +7,7 @@ use crate::output::OverwriteConfiguration;
 use std::collections::HashSet;
 use std::fs::{create_dir_all, File};
 use std::io::Result;
+use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 pub trait FileWriter {
@@ -54,11 +55,20 @@ impl OutputHandler {
         println!("writing output files...");
 
         for (name, polygon) in filename_polys {
-            let filename_wo_ext = format!("{}/{}", base_folder, name);
-            if self.write_poly && self.write_file(&filename_wo_ext, "poly", polygon, &poly_writer) {
+            let filename_wo_ext: PathBuf = [base_folder.to_string(), name].iter().collect();
+            if self.write_poly
+                && self.write_file(filename_wo_ext.with_extension("poly").as_path(), polygon, &poly_writer)
+            {
                 file_count += 1;
             }
-            if self.write_geojson && self.write_file(&filename_wo_ext, "geojson", polygon, &geojson_writer) {
+
+            if self.write_geojson
+                && self.write_file(
+                    filename_wo_ext.with_extension("geojson").as_path(),
+                    polygon,
+                    &geojson_writer,
+                )
+            {
                 file_count += 1;
             }
         }
@@ -67,27 +77,21 @@ impl OutputHandler {
         Ok(file_count)
     }
 
-    pub fn write_file(
-        &mut self,
-        filename_wo_ext: &str,
-        ext: &str,
-        polygon: &Polygon,
-        file_writer: &impl FileWriter,
-    ) -> bool {
-        let filename = format!("{}.{}", filename_wo_ext, ext);
-
+    pub fn write_file(&mut self, filename_wo_ext: &Path, polygon: &Polygon, file_writer: &impl FileWriter) -> bool {
         let result = self
             .file_creator
-            .create_file(&filename)
+            .create_file(filename_wo_ext)
             .and_then(|mut file| file_writer.write_to_file(&mut file, polygon));
+
+        let filename_str = filename_wo_ext.as_os_str().to_str().unwrap();
 
         match result {
             Err(e) => {
-                println!("{}: {}", filename, e);
+                println!("{}: {}", filename_str, e);
                 false
             }
             Ok(_) => {
-                println!("{}: successfully written ", filename);
+                println!("{}: successfully written ", filename_str);
                 true
             }
         }

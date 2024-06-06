@@ -16,9 +16,9 @@ enum OverwriteOrSkip {
 }
 
 impl FileCreator {
-    pub fn create_file(&mut self, filename: &str) -> std::io::Result<File> {
-        if Path::new(filename).exists() {
-            match self.overwrite_handling(filename)? {
+    pub fn create_file(&mut self, filename: &Path) -> std::io::Result<File> {
+        if filename.exists() {
+            match self.overwrite_handling(filename.as_os_str().to_str().unwrap())? {
                 OverwriteOrSkip::Skip => {
                     return Err(Error::new(ErrorKind::AlreadyExists, "skipped"));
                 }
