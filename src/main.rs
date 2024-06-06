@@ -119,7 +119,7 @@ fn main() {
         OverwriteConfiguration::Ask
     };
 
-    let geojson_output = matches.contains_id(GEOJSON_ARG);
+    let geojson_output = matches.get_flag(GEOJSON_ARG);
 
     let output_handler_config = OutputHandlerConfiguration {
         overwrite_configuration,
