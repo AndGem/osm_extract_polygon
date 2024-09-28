@@ -2,7 +2,6 @@ use osmpbfreader::{Node, NodeId, OsmPbfReader, Relation, RelationId, WayId};
 
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
-use std::i8::MAX;
 use std::path::Path;
 use std::time::Instant;
 
@@ -48,7 +47,7 @@ fn has_proper_admin_level(relation: &Relation, min_admin: &i8, max_admin: &i8) -
         .tags
         .get("admin_level")
         .and_then(|v| v.parse::<i8>().ok())
-        .unwrap_or(MAX);
+        .unwrap_or(i8::MAX);
 
     (*min_admin <= admin_level) && (admin_level <= *max_admin)
 }

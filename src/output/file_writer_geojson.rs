@@ -38,6 +38,7 @@ fn create_properties(polygon: &Polygon) -> Map<String, serde_json::Value> {
     let mut properties = Map::new();
     properties.insert(String::from("name"), to_value(&polygon.name).unwrap());
     properties.insert(String::from("admin_level"), to_value(polygon.admin_level).unwrap());
+    properties.insert(String::from("relation_id"), to_value(polygon.relation_id).unwrap());
     properties
 }
 
