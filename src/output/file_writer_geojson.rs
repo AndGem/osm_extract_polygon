@@ -7,7 +7,7 @@ use geojson::{Feature, Geometry};
 
 use std::fs::File;
 use std::io::prelude::*;
-use std::io::{Error, ErrorKind};
+use std::io::Error;
 
 use serde_json::{to_value, Map};
 
@@ -16,7 +16,7 @@ pub struct GeoJsonWriter {}
 impl FileWriter for GeoJsonWriter {
     fn write_to_file(&self, file: &mut File, polygon: &Polygon) -> std::io::Result<()> {
         let feature = convert_polygon_to_geojson_feature(polygon)
-            .map_err(|_| Error::new(ErrorKind::Other, "Error in converting Polygon to GeoJSON"))?;
+            .map_err(|_| Error::other("Error in converting Polygon to GeoJSON"))?;
         file.write_all(feature.to_string().as_bytes())
     }
 }
